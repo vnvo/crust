@@ -1,5 +1,5 @@
 <!-- Navigation -->
-<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0" ng-controller="NavbarController as vm">
     <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="sr-only">Toggle navigation</span>
@@ -42,13 +42,14 @@
         <!-- /.dropdown -->
         <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                <strong>{{ user.username|capfirst }}</strong>
                 <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
             </a>
             <ul class="dropdown-menu dropdown-user">
-                <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                <li><a href="/myprofile"><i class="fa fa-user-secret fa-fw"></i> User Profile</a>
                 </li>
                 <li class="divider"></li>
-                <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                <li><a href="javascript:void(0)" ng-click="vm.logout()"><i class="fa fa-sign-out fa-fw"></i>Logout</a>
                 </li>
             </ul>
             <!-- /.dropdown-user -->
@@ -72,19 +73,22 @@
                     <!-- /input-group -->
                 </li>
                 <li>
-                    <a href="/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                    <a href="/dashboard"><i class="fa fa-dashboard fa-lg"></i> <strong>Dashboard</strong></a>
                 </li>
                 <li>
-                    <a href="/servers"><i class="fa fa-server fa-fw"></i> Servers/Devices</a>
+                    <a href="/supervisors"><i class="fa fa-user-secret fa-lg"></i> <strong>Supervsors/Admins</strong></a>
                 </li>
                 <li>
-                    <a href="/serveraccounts"><i class="fa fa-user-secret fa-fw"></i> Server Accounts</a>
+                    <a href="/servers"><i class="fa fa-server fa-lg"></i> <strong>Servers/Devices</strong></a>
                 </li>
                 <li>
-                    <a href="/remoteusers"><i class="fa fa-user-plus fa-fw"></i> Remote Users</a>
+                    <a href="/serveraccounts"><i class="fa fa-android fa-lg"></i> <strong>Server Accounts</strong></a>
                 </li>
                 <li>
-                    <a href="/reports"><i class="fa fa-eye fa-fw"></i> Reports<span class="fa arrow"></span></a>
+                    <a href="/remoteusers"><i class="fa fa-user-plus fa-lg"></i> <strong>Remote Users</strong></a>
+                </li>
+                <li>
+                    <a href="/reports"><i class="fa fa-eye fa-lg"></i> <strong>Reports</strong><span class="fa arrow"></span></a>
                     <ul class="nav nav-second-level">
                         <li>
                             <a href="/reports/active">Active Connections</a>

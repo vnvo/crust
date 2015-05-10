@@ -38,7 +38,10 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'compressor',
+
+    ### Crust Components ###
     'authentication',
+    'servers',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -109,6 +112,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
        'rest_framework.permissions.AllowAny',
     ),
+
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
 }
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()

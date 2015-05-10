@@ -14,10 +14,15 @@
     function config($routeProvider){
         $routeProvider
             .when(
-                '/login',
-                {controller: 'LoginController',
-                 controllerAs: 'vm',
-                 templateUrl: '/static/templates/login.html'
+                '/login',{
+                    controller: 'LoginController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/login.html'}
+            ).when(
+                '/servergroups',{
+                    contoller: 'ServerGroupsController',
+                    controllerAs: 'vm',
+                    templateUrl: 'static/templates/servers/server_groups/servergroups.html'
                 }
             ).otherwise('/');
     }

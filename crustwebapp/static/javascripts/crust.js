@@ -6,7 +6,9 @@
             'crust.config',
             'crust.routes',
             'crust.authentication',
-            'crust.layout'
+            'crust.layout',
+            'crust.utils',
+            'crust.servers.server_groups'
         ]);
 
     angular

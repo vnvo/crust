@@ -7,16 +7,19 @@ from authentication.views import SupervisorViewSet
 from authentication.views import LoginView
 from authentication.views import LogoutView
 
+from servers.views import ServerGroupsViewSet
+
 from crustwebapp.views import IndexView
 
 # setup router
 router = routers.SimpleRouter()
 router.register(r'supervisors', SupervisorViewSet)
-
+router.register(r'servergroups', ServerGroupsViewSet)
 
 urlpatterns = patterns(
     '',
     url(r'^api/v1/', include(router.urls)),
+
     url(r'^api/v1/auth/login/$', LoginView.as_view(), name='login'),
     url(r'^api/v1/auth/logout/$', LogoutView.as_view(), name='logout'),
 

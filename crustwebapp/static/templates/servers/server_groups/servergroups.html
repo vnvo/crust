@@ -1,0 +1,13 @@
+<button
+  class="btn btn-success btn-lg"
+  title="Add New Server Group" data-placement="bottom"
+  data-toggle="tooltip"
+  type="button"
+  ng-dialog="/static/templates/servers/server_groups/new_servergroup.templ.html"
+  ng-dialog-controller="NewServerGroupController as vm">
+    <i class="fa fa-plus"></i>
+</button>
+
+<servergroups
+    servergroups="vm.servergroups">
+</servergroups>

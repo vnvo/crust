@@ -1,0 +1,33 @@
+.snackbar {
+  background-color: #323232;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 14px;
+  border-radius: 2px;
+  box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.12), 0 1px 6px 0 rgba(0, 0, 0, 0.12);
+  height: 0;
+  transition: -webkit-transform 0.2s ease-in-out, opacity 0.2s ease-in, height 0 linear 0.2s, padding 0 linear 0.2s, height 0 linear 0.2s;
+  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in, height 0 linear 0.2s, padding 0 linear 0.2s, height 0 linear 0.2s;
+  -webkit-transform: translateY(200%);
+      -ms-transform: translateY(200%);
+          transform: translateY(200%);
+}
+.snackbar.snackbar-opened {
+  padding: 14px 15px;
+  margin-bottom: 20px;
+  height: auto;
+  transition: -webkit-transform 0.2s ease-in-out, opacity 0.2s ease-in, height 0 linear 0.2s, height 0 linear 0.2s;
+  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in, height 0 linear 0.2s, height 0 linear 0.2s;
+  -webkit-transform: none;
+      -ms-transform: none;
+          transform: none;
+}
+.snackbar.toast {
+  border-radius: 200px;
+}
+
+.gridStyle
+{
+  border: 1px solid rgb(212,212,212);
+  height: 400px;
+  width: 80%;
+}

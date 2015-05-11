@@ -17,6 +17,7 @@
     function ServerGroups($http){
         var ServerGroups = {
             all: allServerGroups,
+            getCount: getCount,
             create: createServerGroup,
             get: getServerGroup,
             update: updateServerGroup,
@@ -34,6 +35,16 @@
          */
         function allServerGroups(){
             return $http.get('/api/v1/servergroups/');
+        }
+
+        /**
+         * @name getCount
+         * @desc get current count of Server Groups
+         * @returns {Promise}
+         * @memberOf crust.servers.server_groups.services.ServerGroups
+         */
+        function getCount(){
+            return $http.get('/api/v1/servergroups/count/');
         }
 
         /**

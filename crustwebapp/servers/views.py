@@ -1,4 +1,5 @@
 from rest_framework import permissions, viewsets
+from rest_framework import views
 from rest_framework.response import Response
 
 from servers.models import ServerGroup
@@ -16,3 +17,8 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
             return (permissions.IsAuthenticated(),)
 
         return (permissions.IsAuthenticated(), IsAdmin())
+
+class ServerGroupsCountView(views.APIView):
+    def get(self, request):
+        servergroup_count = ServerGroup.objects.count()
+        return Response({'servergroup_count':servergroup_count})

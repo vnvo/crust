@@ -8,6 +8,7 @@ from authentication.views import LoginView
 from authentication.views import LogoutView
 
 from servers.views import ServerGroupsViewSet
+from servers.views import ServerGroupsCountView
 
 from crustwebapp.views import IndexView
 
@@ -18,8 +19,16 @@ router.register(r'servergroups', ServerGroupsViewSet)
 
 urlpatterns = patterns(
     '',
+
+    ### Dashboard General Stats
+    url(r'^api/v1/servergroups/count/$',
+        ServerGroupsCountView.as_view(),
+        name='servergroups-count'),
+
+    ### Model View Routes
     url(r'^api/v1/', include(router.urls)),
 
+    ### Authentication
     url(r'^api/v1/auth/login/$', LoginView.as_view(), name='login'),
     url(r'^api/v1/auth/logout/$', LogoutView.as_view(), name='logout'),
 

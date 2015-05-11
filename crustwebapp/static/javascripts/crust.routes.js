@@ -19,6 +19,11 @@
                     controllerAs: 'vm',
                     templateUrl: '/static/templates/login.html'}
             ).when(
+                '/dashboard',{
+                    controller: 'DashboardController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/dashboard.html'}
+            ).when(
                 '/servergroups',{
                     contoller: 'ServerGroupsController',
                     controllerAs: 'vm',

@@ -46,19 +46,17 @@ class LoginView(views.APIView):
 
 
 class SupervisorViewSet(viewsets.ModelViewSet):
-    lookup_field = 'username'
+
     queryset = Supervisor.objects.all()
     serializer_class = SupervisorSerializer
 
     def get_permissions(self):
-        #if self.request.method == 'POST':
-        #    return (permissions.AllowAny(),)
         return (permissions.IsAuthenticated(), IsAdmin(),)
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             Supervisor.objects.create_user(**serializer.validated_data)
 
             return Response(

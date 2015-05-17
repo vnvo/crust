@@ -8,7 +8,7 @@ class SupervisorManager(BaseUserManager):
         if not username:
             raise ValueError('User must have a valid username.')
 
-        account = self.model(username=username)
+        account = self.model(username=username, **kwargs)
 
         account.set_password(password)
         account.save()
@@ -31,6 +31,7 @@ class Supervisor(AbstractBaseUser):
     last_name = models.CharField(max_length=64, blank=True)
 
     is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

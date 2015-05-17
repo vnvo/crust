@@ -1,0 +1,63 @@
+<form role="form" ng-submit="vm.submit()" class="form-horizontal">
+    <div class="form-group">
+        <label for="supervisor__username" class="control-label col-xs-3">Username</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="supervisor__username"
+                   data-ng-model="vm.username" placeholder="Username" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="supervisor__password" class="control-label col-xs-3">Password</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="supervisor__password"
+                   data-ng-model="vm.password" type="password" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="supervisor__confirm_password" class="control-label col-xs-3">Confirm Password</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="supervisor__confirm_password"
+                   data-ng-model="vm.confirm_password" type="password"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="supervisor__email" class="control-label col-xs-3">Email</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="supervisor__email"
+                   data-ng-model="vm.email" placeholder="nickname@domain.com..."/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="supervisor__is_admin" class="control-label col-xs-3">Is Admin</label>
+        <div class="col-xs-7">
+            <label class="radio-inline">
+                <input type="radio" data-ng-model="vm.is_admin" ng-value="true">Admin
+            </label>
+            <label class="radio-inline">
+                <input type="radio" data-ng-model="vm.is_admin" ng-value="false">Not Admin
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="supervisor__is_active" class="control-label col-xs-3">Is Active</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn btn-info" title="Supervisor is Active">
+                <input type="radio" data-ng-model="vm.is_active" ng-value="true">
+                <i class="fa fa-unlock fa-lg"></i>
+            </label>
+            <label class="radio-inline btn btn-warning" title="Supervisor is NOT Active">
+                <input type="radio" data-ng-model="vm.is_active" ng-value="false">
+                <i class="fa fa-lock fa-lg"></i>
+            </label>
+        </div>
+    </div>
+
+    <br/><br/>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-10">
+            <button type="submit" class="btn btn-success">
+                Add Suervisor
+            </button>
+        </div>
+    </div>
+</form>

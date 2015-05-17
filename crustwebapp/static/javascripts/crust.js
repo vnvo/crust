@@ -9,7 +9,8 @@
             'crust.layout',
             'crust.utils',
             'crust.dashboard',
-            'crust.servers.server_groups'
+            'crust.servers.server_groups',
+            'crust.supervisors'
         ]);
 
     angular

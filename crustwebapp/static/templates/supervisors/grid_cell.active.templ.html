@@ -1,0 +1,15 @@
+<div class="ngCellText">
+    <!-- When supevisor.is_active == true -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)==true">
+        <button class="btn btn-info" title="Is Active" ng-click="toggleIsActive($event, row)">
+            <i class="fa fa-unlock fa-xs"></i>
+        </button>
+    </div>
+
+    <!-- When supervisor.is_active == false -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)==false">
+        <button class="btn btn-warning" title="Is Inactive" ng-click="toggleIsActive($event, row)">
+            <i class="fa fa-lock fa-xs"></i>
+        </button>
+    </div>
+</div>

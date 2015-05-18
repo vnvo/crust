@@ -30,7 +30,7 @@
         vm.stopTimer = stopTimer;
 
         getSystemStats();
-        var timer = $interval(getSystemStats, 60000);
+        var timer = $interval(getSystemStats, 120000);
         $scope.$on('$destroy', function() {
             // Make sure that the interval is destroyed too
             vm.stopTimer();

@@ -10,13 +10,15 @@
         .controller('DashboardController', DashboardController);
 
     DashboardController.$inject = [
-        '$scope', '$interval', 'Snackbar', 'ServerGroups'
+        '$scope', '$interval', 'Snackbar',
+        'ServerGroups', 'Servers'
     ];
 
     /**
      * @namespace DashboardController
      */
-    function DashboardController($scope, $interval, Snackbar, ServerGroups){
+    function DashboardController($scope, $interval, Snackbar,
+                                 ServerGroups, Servers){
         var vm = this;
 
         vm.servergroup_count = 'n/a';
@@ -61,8 +63,16 @@
                 vm.servergroup_count = 'n/a';
             }
 
-            //vm.servergroup_count = 15;
-            vm.server_count = 48;
+            Servers.count().then(
+                getServerCountSuccess, getServerCountError);
+            function getServerCountSuccess(data, status, headers, config){
+                vm.server_count = data.data.server_count;
+            }
+            function getServerCountError(data, status, headers, config){
+                Snackbar.error('Error getting Servers Count.');
+                vm.server_count = 'n/a';
+            }
+
             vm.remote_user_count = 23;
             vm.active_remote_session_count = 7;
         }

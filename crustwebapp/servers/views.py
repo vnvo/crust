@@ -61,4 +61,4 @@ class ServersViewSet(viewsets.ModelViewSet):
 class ServersCountView(views.APIView):
     def get(self, request):
         servers_count = Server.objects.count()
-        return Response({'servers_count':servers_count})
+        return Response({'server_count':servers_count})

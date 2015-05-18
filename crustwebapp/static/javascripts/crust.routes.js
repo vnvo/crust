@@ -34,6 +34,12 @@
                     controllerAs: 'vm',
                     templateUrl: 'static/templates/servers/server_groups/servergroups.html'
                 }
+            ).when(
+                '/servers',{
+                    controller: 'ServersController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/servers/servers/servers.html'
+                }
             ).otherwise('/dashboard');
     }
 })();

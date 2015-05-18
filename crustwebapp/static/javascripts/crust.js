@@ -10,6 +10,7 @@
             'crust.utils',
             'crust.dashboard',
             'crust.servers.server_groups',
+            'crust.servers.servers',
             'crust.supervisors'
         ]);
 

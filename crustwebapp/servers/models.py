@@ -12,7 +12,7 @@ class ServerGroup(models.Model):
 class Server(models.Model):
     '''
     @name Server
-    @desc Represents a connectable entity in a network
+    @desc Represents a reachable element in network
     '''
     #### General Fields
     server_group = models.ForeignKey(ServerGroup)

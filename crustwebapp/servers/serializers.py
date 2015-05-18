@@ -12,7 +12,7 @@ class ServerGroupSerializer(serializers.ModelSerializer):
         read_only_fields = ('id','server_set')
 
 class ServerSerializer(serializers.ModelSerializer):
-    server_group = ServerGroupSerializer(required=True)
+    server_group = ServerGroupSerializer(read_only=True, required=False)
 
     class Meta:
         model = Server
@@ -25,10 +25,16 @@ class ServerSerializer(serializers.ModelSerializer):
 
         read_only_fields = ('id',)
 
+    def create(self, validated_data):
+        server = Server.objects.create(**validated_data)
+        return server
+
+
     def get_validation_exclusions(self, *args, **kwargs):
         exclusions = super(ServerSerializer, self).get_validation_exclusions()
 
         return exclusions + ['server_group']
+
 
 class ServerAccountSerializer(serializers.ModelSerializer):
     server = ServerSerializer(required=True)

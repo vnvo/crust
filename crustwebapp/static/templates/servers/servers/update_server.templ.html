@@ -1,0 +1,64 @@
+<br/>
+<form role="form" ng-submit="vm.update()" class="form-horizontal">
+    <div class="form-group">
+        <label for="server_server_group" class="control-label col-xs-4">Server Group</label>
+        <div class="col-xx-7">
+            <select ng-model="vm.server_group"
+                    ng-options="item.group_name for item in servergroups_data track by item.id">
+                <option value="">- Select Parent Server Group -</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="server__server_name" class="control-label col-xs-4">Server Name</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="server__server_name"
+                   data-ng-model="vm.server_name" placeholder="Server Name" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="server__server_ip" class="control-label col-xs-4">Server IP</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="server__server_ip"
+                   data-ng-model="vm.server_ip" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="server__sshv2_port" class="control-label col-xs-4">SSHv2 Port</label>
+        <div class="col-xs-3">
+            <input class="form-control" id="server__sshv2_port"
+                   data-ng-model="vm.sshv2_port"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="server__telnet_port" class="control-label col-xs-4">Telnet Port</label>
+        <div class="col-xs-3">
+            <input class="form-control" id="server__telnet_port"
+                   data-ng-model="vm.telnet_port"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="server__timeout" class="control-label col-xs-4">Timeout (Seconds)</label>
+        <div class="col-xs-3">
+            <input class="form-control" data-ng-model="vm.timeout"
+                   id="server__timeout"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="server__comment" class="control-label col-xs-4">Comment</label>
+        <div class="col-xs-7">
+            <textarea class="form-control" data-ng-model="vm.comment">
+            </textarea>
+        </div>
+    </div>
+
+
+    <br/><br/>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-10">
+            <button type="submit" class="btn btn-primary">
+                Update Server
+            </button>
+        </div>
+    </div>
+</form>

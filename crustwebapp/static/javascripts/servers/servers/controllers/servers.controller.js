@@ -1,0 +1,108 @@
+/*
+ * @namespace ServersController
+ */
+(function (){
+    'use strict';
+
+    angular
+        .module('crust.servers.servers.controllers')
+        .controller('ServersController', ServersController);
+
+    ServersController.$inject = [
+        '$scope', 'Servers', 'Snackbar', 'ngDialog'
+    ];
+
+
+    function ServersController($scope, Servers, Snackbar, ngDialog){
+        var vm = this;
+
+        vm.getServers = getServers;
+        getServers();
+
+        $scope.deleteServer = deleteServer;
+        $scope.startUpdateDialog = startUpdateDialog;
+
+        function startUpdateDialog(event, grid_row){
+            $scope.update_server_id = grid_row.entity.id;
+            ngDialog.open({
+                template: '/static/templates/servers/servers/update_server.templ.html',
+                controller: 'UpdateServerController as vm',
+                scope: $scope
+            });
+            event.stopPropagation();
+        }
+
+        function deleteServer(event, grid_row){
+            event.stopPropagation();
+            if(!confirm('You are deleting a Server, are you sure?')){
+                return;
+            }
+
+            Servers.delete(
+                grid_row.entity.id
+            ).then(deleteServerSuccess, deleteServerError);
+
+            function deleteServerSuccess(data, status, headers, config){
+                Snackbar.show('Server Deleted Successfuly.');
+                getServers();
+            }
+            function deleteServerError(data, status, headers, config){
+                Snackbar.error('Could not delete the Server.');
+            }
+        }
+
+        function getServers(){
+            Servers.all().then(getAllSuccess, getAllError);
+            function getAllSuccess(data, status, headers, config){
+                $scope.servers_data = data.data;
+            }
+            function getAllError(data, status, headers, config){
+                Snackbar.error('Can not get Servers');
+            }
+        }
+
+        // listen for creation/update events
+        $scope.$on(
+            'server.created',
+            function(){ getServers(); }
+        );
+        $scope.$on(
+            'server.updated',
+            function(){ getServers(); }
+        );
+
+        // Init/config ngGrid instance
+        $scope.gridOptions = {
+            data: 'servers_data',
+            rowHeight: 35,
+            enablePaging: true,
+            showHeader: true,
+            showFooter: true,
+            showGroupPanel: true,
+            showFilter: true,
+            columnDefs: [
+                {displayName:'#', width: 30,
+                 cellTemplate: '<div class="ngCellText" data-ng-class="col.colIndex()"><span>{{row.rowIndex + 1}}</span></div>'
+                },
+                {field: 'id', displayName: 'ID', width: 35},
+                {field: 'server_name', displayName: 'Server Name', width: 150},
+                {field: 'server_ip', displayName: 'IP', width: 105},
+                {field: 'server_group.group_name', displayName: 'Server Group', width: 150},
+                {field: 'sshv2_port', displayName: 'SSHv2 Port', width: 90},
+                {field: 'telnet_port', displayName: 'Telnet Port', width: 90},
+                {field: 'timeout', displayName: 'Timeout', width: 68},
+                {field: 'comment', displayName: 'Comment', width: 175},
+                {field: '', displayName: 'Actions',
+                 cellTemplate: '/static/templates/servers/servers/grid_cell.actions.templ.html'
+                }
+            ],
+            plugins: [new ngGridCsvExportPlugin()],
+            pagingOptions:{
+                pageSizes: [5, 20, 50],
+                pageSize: 5,
+                currentPage: 1
+            }
+        };
+    }
+
+})();

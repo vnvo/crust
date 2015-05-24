@@ -14,6 +14,9 @@ from servers.views import ServersCountView
 from servers.views import ServerAccountsViewSet
 from servers.views import ServerAccountsCountView
 
+from remoteusers.views import RemoteUsersViewSet
+from remoteusers.views import RemoteUsersCountView
+
 from crustwebapp.views import IndexView
 
 # setup router
@@ -22,6 +25,7 @@ router.register(r'supervisors', SupervisorViewSet)
 router.register(r'servergroups', ServerGroupsViewSet)
 router.register(r'servers', ServersViewSet)
 router.register(r'serveraccounts', ServerAccountsViewSet)
+router.register(r'remoteusers', RemoteUsersViewSet)
 
 urlpatterns = patterns(
     '',
@@ -38,6 +42,10 @@ urlpatterns = patterns(
     url(r'api/v1/serveraccounts/count/$',
         ServerAccountsCountView.as_view(),
         name='serveraccount-count'),
+
+    url(r'api/v1/remoteusers/count/$',
+        RemoteUsersCountView.as_view(),
+        name='remoteusers-count'),
 
 
     ### Model View Routes

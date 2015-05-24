@@ -11,20 +11,22 @@
 
     DashboardController.$inject = [
         '$scope', '$interval', 'Snackbar',
-        'ServerGroups', 'Servers', 'ServerAccounts'
+        'ServerGroups', 'Servers', 'ServerAccounts',
+        'RemoteUsers'
     ];
 
     /**
      * @namespace DashboardController
      */
     function DashboardController($scope, $interval, Snackbar,
-                                 ServerGroups, Servers, ServerAccounts){
+                                 ServerGroups, Servers,
+                                 ServerAccounts, RemoteUsers){
         var vm = this;
 
         vm.servergroup_count = 'n/a';
         vm.server_count = 'n/a';
         vm.serveraccount_count = 'n/a';
-        vm.remote_user_count = 'n/a';
+        vm.remoteuser_count = 'n/a';
         vm.active_remote_session_count = 'n/a';
 
         vm.getSystemStats = getSystemStats;
@@ -87,7 +89,17 @@
                 Snackbar.error('Error getting Server Account count');
             }
 
-            vm.remote_user_count = 23;
+            //Remote Users
+            RemoteUsers.count().then(
+                getRuCountSuccess, getRuCountError
+            );
+            function getRuCountSuccess(data, status ,headers, config){
+                vm.remoteuser_count = data.data.remoteuser_count;
+            }
+            function getRuCountError(data, status, headers, config){
+                Snackbar.error('Can not get Remote Users count.');
+            }
+
             vm.active_remote_session_count = 7;
         }
 

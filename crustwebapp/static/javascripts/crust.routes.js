@@ -46,6 +46,12 @@
                     controllerAs: 'vm',
                     templateUrl: '/static/templates/servers/serveraccounts/serveraccounts.html'
                 }
+            ).when(
+                '/remoteusers', {
+                    controller: 'RemoteUsersController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/remoteusers/remoteusers.html'
+                }
             ).otherwise('/dashboard');
     }
 })();

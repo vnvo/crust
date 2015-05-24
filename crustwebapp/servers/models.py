@@ -9,6 +9,10 @@ class ServerGroup(models.Model):
     group_name = models.CharField(max_length=256, unique=True)
     comment = models.TextField(blank=True)
 
+    @property
+    def get_server_count(self):
+        return self.server_set.count()
+
 class Server(models.Model):
     '''
     @name Server
@@ -30,6 +34,9 @@ class Server(models.Model):
     def __unicode__(self):
         return '%s (%s)'%(self.server_name, self.server_ip)
 
+    @property
+    def get_serveraccount_count(self):
+        return self.serveraccount_set.count()
 
 class ServerAccount(models.Model):
     '''

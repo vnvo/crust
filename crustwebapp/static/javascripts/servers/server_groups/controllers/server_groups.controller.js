@@ -41,7 +41,7 @@
             columnDefs:[
                 {field: 'id', displayName: 'ID', width:'40px'},
                 {field: 'group_name', displayName: 'Server Group Name', width: '300px'},
-                {field: 'server_set', displayName: 'Servers', width: 20}
+                {field: 'server_count', displayName: 'Servers #', width: 20}
             ],
             plugins: [new ngGridCsvExportPlugin()],
             pagingOptions: {

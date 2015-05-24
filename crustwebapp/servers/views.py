@@ -2,11 +2,14 @@ from rest_framework import permissions, viewsets
 from rest_framework import views, status
 from rest_framework.response import Response
 
-from servers.models import ServerGroup, Server
+from servers.models import ServerGroup, Server, ServerAccount
 from servers.serializers import ServerGroupSerializer, ServerSerializer
+from servers.serializers import ServerAccountSerializer
 
 from authentication.permissions import IsAdmin
 
+
+################# ServerGroups
 class ServerGroupsViewSet(viewsets.ModelViewSet):
     queryset = ServerGroup.objects.all()
     serializer_class = ServerGroupSerializer
@@ -24,7 +27,7 @@ class ServerGroupsCountView(views.APIView):
         return Response({'servergroup_count':servergroup_count})
 
 
-
+################# Servers
 class ServersViewSet(viewsets.ModelViewSet):
     queryset = Server.objects.all()
     serializer_class = ServerSerializer
@@ -54,7 +57,7 @@ class ServersViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(server_obj, data=data)
         if serializer.is_valid():
             serializer.save(server_group=server_group_obj)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -62,3 +65,47 @@ class ServersCountView(views.APIView):
     def get(self, request):
         servers_count = Server.objects.count()
         return Response({'server_count':servers_count})
+
+
+################# ServerAccount
+class ServerAccountsViewSet(viewsets.ModelViewSet):
+    queryset = ServerAccount.objects.all()
+    serializer_class = ServerAccountSerializer
+
+    def get_permission(self):
+        # @todo: must check the requesters assign server-groups
+        if self.request.method in permissions.SAFE_METHODS:
+            return (permissions.IsAuthenticated, )
+        return (permissions.IsAuthenticated(), IsAdmin())
+
+    def create(self, request):
+        data = request.data
+        server_data = data.pop('server')
+        server_obj = Server.objects.get(id=server_data['id'])
+        #data['server'] = server_obj
+        print data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save(server=server_obj)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk):
+        serveraccount_obj = ServerAccount.objects.get(id=pk)
+        data = request.data
+        server_data = data.pop('server')
+        server_obj = Server.objects.get(id=server_data['id'])
+        serializer = self.serializer_class(serveraccount_obj, data=data)
+        if serializer.is_valid():
+            serializer.save(server=server_obj)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ServerAccountsCountView(views.APIView):
+    def get(self, request):
+        serveraccounts_count = ServerAccount.objects.count()
+        return Response({'serveraccount_count':serveraccounts_count})

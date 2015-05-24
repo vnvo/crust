@@ -1,0 +1,80 @@
+<br/>
+<form role="form" ng-submit="vm.submit()" class="form-horizontal">
+    <div class="form-group">
+        <label for="serveraccount__server" class="control-label col-xs-4">Server</label>
+        <div class="col-xx-7">
+            <select ng-model="vm.server" ng-options="item.server_name for item in servers_data">
+                <option value="">- Select Server -</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="serveraccount__protocol" class="control-label col-xs-4">Protocol</label>
+        <div class="col-xx-7">
+            <select ng-model="vm.protocol" ng-options="item for item in protocol_data">
+                <option value="">- Select Protocol -</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="serveraccount__username" class="control-label col-xs-4">Username</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="serveraccount__username"
+                   data-ng-model="vm.username" placeholder="Userame" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="serveraccount__password" class="control-label col-xs-4">Password</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="serveraccount__password"
+                   data-ng-model="vm.password" type="password" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="serveraccount__confirm_password" class="control-label col-xs-4">Confirm Password</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="server__confirm_password"
+                   data-ng-model="vm.confirm_password" type="password" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="serveraccount__is_locked" class="control-label col-xs-4">Is Locked</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn btn-info" title="Server Account Is Un-Locked">
+                <input type="radio" data-ng-model="vm.is_locked" ng-value="false">
+                <i class="fa fa-unlock fa-lg"></i>
+            </label>
+            <label class="radio-inline btn btn-warning" title="Server Account Is Locked">
+                <input type="radio" data-ng-model="vm.is_locked" ng-value="true">
+                <i class="fa fa-lock fa-lg"></i>
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="serveraccount__sshv2_private_key" class="control-label col-xs-4">SSHv2 Private Key</label>
+        <div class="col-xs-7">
+            <textarea class="form-control" id="serveraccount__sshv2_private_key"
+                      data-ng-model="vm.sshv2_private_key"/>
+            </textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="server__comment" class="control-label col-xs-4">Comment</label>
+        <div class="col-xs-7">
+            <textarea class="form-control" data-ng-model="vm.comment"
+                      id="server__comment">
+            </textarea>
+        </div>
+    </div>
+
+    <br/><br/>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-10">
+            <button type="submit" class="btn btn-success">
+                Add Server Account
+            </button>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,15 @@
+<div class="ngCellText">
+    <!-- When serveraccount.is_locked == false -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)==false">
+        <button class="btn btn-info" title="Server Account Is Un-Locked" ng-click="toggleIsLocked($event, row)">
+            <i class="fa fa-unlock fa-xs"></i>
+        </button>
+    </div>
+
+    <!-- When serveraccount.is_locked == true -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)==true">
+        <button class="btn btn-warning" title="Server Account Is Locked" ng-click="toggleIsLocked($event, row)">
+            <i class="fa fa-lock fa-xs"></i>
+        </button>
+    </div>
+</div>

@@ -85,13 +85,14 @@
                  cellTemplate: '<div class="ngCellText" data-ng-class="col.colIndex()"><span>{{row.rowIndex + 1}}</span></div>'
                 },
                 {field: 'id', displayName: 'ID', width: 35},
-                {field: 'server_name', displayName: 'Server Name', width: 150},
-                {field: 'server_ip', displayName: 'IP', width: 105},
-                {field: 'server_group.group_name', displayName: 'Server Group', width: 150},
+                {field: 'server_name', displayName: 'Server Name', width: 145},
+                {field: 'server_ip', displayName: 'IP', width: 110},
+                {field: 'server_group.group_name', displayName: 'Server Group', width: 110},
                 {field: 'sshv2_port', displayName: 'SSHv2 Port', width: 90},
                 {field: 'telnet_port', displayName: 'Telnet Port', width: 90},
-                {field: 'timeout', displayName: 'Timeout', width: 68},
-                {field: 'comment', displayName: 'Comment', width: 175},
+                {field: 'serveraccount_count', displayName:'Accounts #', width: 90},
+                {field: 'timeout', displayName: 'Timeout', width: 70},
+                {field: 'comment', displayName: 'Comment', width: 150},
                 {field: '', displayName: 'Actions',
                  cellTemplate: '/static/templates/servers/servers/grid_cell.actions.templ.html'
                 }

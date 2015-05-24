@@ -11,6 +11,8 @@ from servers.views import ServerGroupsViewSet
 from servers.views import ServerGroupsCountView
 from servers.views import ServersViewSet
 from servers.views import ServersCountView
+from servers.views import ServerAccountsViewSet
+from servers.views import ServerAccountsCountView
 
 from crustwebapp.views import IndexView
 
@@ -19,6 +21,7 @@ router = routers.SimpleRouter()
 router.register(r'supervisors', SupervisorViewSet)
 router.register(r'servergroups', ServerGroupsViewSet)
 router.register(r'servers', ServersViewSet)
+router.register(r'serveraccounts', ServerAccountsViewSet)
 
 urlpatterns = patterns(
     '',
@@ -31,6 +34,10 @@ urlpatterns = patterns(
     url(r'api/v1/servers/count/$',
         ServersCountView.as_view(),
         name='servers-count'),
+
+    url(r'api/v1/serveraccounts/count/$',
+        ServerAccountsCountView.as_view(),
+        name='serveraccount-count'),
 
 
     ### Model View Routes

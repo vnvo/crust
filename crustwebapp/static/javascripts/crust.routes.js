@@ -40,6 +40,12 @@
                     controllerAs: 'vm',
                     templateUrl: '/static/templates/servers/servers/servers.html'
                 }
+            ).when(
+                '/serveraccounts',{
+                    controller: 'ServerAccountsController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/servers/serveraccounts/serveraccounts.html'
+                }
             ).otherwise('/dashboard');
     }
 })();

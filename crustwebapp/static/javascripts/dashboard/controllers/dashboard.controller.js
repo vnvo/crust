@@ -11,18 +11,19 @@
 
     DashboardController.$inject = [
         '$scope', '$interval', 'Snackbar',
-        'ServerGroups', 'Servers'
+        'ServerGroups', 'Servers', 'ServerAccounts'
     ];
 
     /**
      * @namespace DashboardController
      */
     function DashboardController($scope, $interval, Snackbar,
-                                 ServerGroups, Servers){
+                                 ServerGroups, Servers, ServerAccounts){
         var vm = this;
 
         vm.servergroup_count = 'n/a';
         vm.server_count = 'n/a';
+        vm.serveraccount_count = 'n/a';
         vm.remote_user_count = 'n/a';
         vm.active_remote_session_count = 'n/a';
 
@@ -54,6 +55,7 @@
          */
         function getSystemStats(){
             Snackbar.show('Fetching System Status ... ');
+            // Server Groups
             ServerGroups.getCount().then(getSGCountSuccess, getSGCountError);
             function getSGCountSuccess(data, header, status, config){
                 vm.servergroup_count = data.data.servergroup_count;
@@ -63,6 +65,7 @@
                 vm.servergroup_count = 'n/a';
             }
 
+            // Servers
             Servers.count().then(
                 getServerCountSuccess, getServerCountError);
             function getServerCountSuccess(data, status, headers, config){
@@ -71,6 +74,17 @@
             function getServerCountError(data, status, headers, config){
                 Snackbar.error('Error getting Servers Count.');
                 vm.server_count = 'n/a';
+            }
+
+            // Server Accounts
+            ServerAccounts.count().then(
+                getSACountSuccess, getSACountError
+            );
+            function getSACountSuccess(data, status, headers, config){
+                vm.serveraccount_count = data.data.serveraccount_count;
+            }
+            function getSACountError(data, status, headers, config){
+                Snackbar.error('Error getting Server Account count');
             }
 
             vm.remote_user_count = 23;

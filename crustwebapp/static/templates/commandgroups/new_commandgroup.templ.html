@@ -1,0 +1,40 @@
+<br/>
+<form role="form" ng-submit="vm.submit()" class="form-horizontal">
+    <div class="form-group">
+        <label for="commandgroup__command_group_name" class="control-label col-xs-4">Command Group Name</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="commandgroup__command_group_name"
+                   data-ng-model="vm.command_group_name" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="commandgroup__default_action" class="control-label col-xs-4">Default Action</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn btn-info" title="Allow Execution">
+                <input type="radio" data-ng-model="vm.default_action" ng-value="true" />
+                <i class="fa fa-check fa-lg"></i> Allow
+            </label>
+            <label class="radio-inline btn btn-warning" title="Deny Execution">
+                <input type="radio" data-ng-model="vm.default_action" ng-value="false" />
+                <i class="fa fa-times fa-lg"></i> Deny
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="commandgroup__comment" class="control-label col-xs-4">Comment</label>
+        <div class="col-xs-7">
+            <textarea class="form-control" data-ng-model="vm.comment"
+                      id="commandgroup__comment">
+            </textarea>
+        </div>
+    </div>
+
+    <br/><br/>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-10">
+            <button type="submit" class="btn btn-success">
+                Add Command Group
+            </button>
+        </div>
+    </div>
+</form>

@@ -52,6 +52,12 @@
                     controllerAs: 'vm',
                     templateUrl: '/static/templates/remoteusers/remoteusers.html'
                 }
+            ).when(
+                '/commandgroups', {
+                    controller: 'CommandGroupsController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/commandgroups/commandgroups.html'
+                }
             ).otherwise('/dashboard');
     }
 })();

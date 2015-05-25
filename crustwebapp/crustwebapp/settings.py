@@ -42,7 +42,8 @@ INSTALLED_APPS = (
     ### Crust Components ###
     'authentication',
     'servers',
-    'remoteusers'
+    'remoteusers',
+    'commandgroups'
 )
 
 MIDDLEWARE_CLASSES = (

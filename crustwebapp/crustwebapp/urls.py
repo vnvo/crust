@@ -17,10 +17,10 @@ from servers.views import ServerAccountsCountView
 from remoteusers.views import RemoteUsersViewSet
 from remoteusers.views import RemoteUsersCountView
 
-from commandgroups.views import CommandGroupViewSet
-from commandgroups.views import CommandGroupCountView
-from commandgroups.views import CommandPatternViewSet
-from commandgroups.views import CommandPatternCountView
+from commandgroups.views import CommandGroupsViewSet
+from commandgroups.views import CommandGroupsCountView
+from commandgroups.views import CommandPatternsViewSet
+from commandgroups.views import CommandPatternsCountView
 
 from crustwebapp.views import IndexView
 
@@ -31,8 +31,8 @@ router.register(r'servergroups', ServerGroupsViewSet)
 router.register(r'servers', ServersViewSet)
 router.register(r'serveraccounts', ServerAccountsViewSet)
 router.register(r'remoteusers', RemoteUsersViewSet)
-router.register(r'commandgroups', CommandGroupViewSet)
-router.register(r'commandpatterns', CommandPatternViewSet)
+router.register(r'commandgroups', CommandGroupsViewSet)
+router.register(r'commandpatterns', CommandPatternsViewSet)
 
 urlpatterns = patterns(
     '',
@@ -55,11 +55,11 @@ urlpatterns = patterns(
         name='remoteusers-count'),
 
     url(r'api/v1/commandgroups/count/$',
-        CommandGroupCountView.as_view(),
+        CommandGroupsCountView.as_view(),
         name='commandgroups-count'),
 
     url(r'api/v1/commandpatterns/count/$',
-        CommandPatternViewSet.as_view(),
+        CommandPatternsViewSet.as_view(),
         name='commandpattern-count'),
 
     ### Model View Routes

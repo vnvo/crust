@@ -9,7 +9,7 @@ from commandgroups.serializers import CommandPatternSerializer
 from authentication.permissions import IsAdmin
 
 
-class CommandGroupViewSet(viewsets.ModelViewSet):
+class CommandGroupsViewSet(viewsets.ModelViewSet):
     queryset = CommandGroup.objects.all()
     serializer_class = CommandGroupSerializer
 
@@ -20,7 +20,7 @@ class CommandGroupViewSet(viewsets.ModelViewSet):
         return (permissions.IsAuthenticated(), IsAdmin())
 
 
-class CommandPatternViewSet(viewsets.ModelViewSet):
+class CommandPatternsViewSet(viewsets.ModelViewSet):
     queryset = CommandPattern.objects.all()
     serializer_class = CommandPatternSerializer
 
@@ -53,12 +53,12 @@ class CommandPatternViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CommandGroupCountView(views.APIView):
+class CommandGroupsCountView(views.APIView):
     def get(self, request):
         commandgroup_count = CommandGroup.objects.count()
         return Response({'commandgroup_count':commandgroup_count})
 
-class CommandPatternCountView(views.APIView):
+class CommandPatternsCountView(views.APIView):
     def get(self, request):
         commandpattern_count = CommandPattern.objects.count()
         return Response({'commandpattern_count':commandpattern_count})

@@ -14,7 +14,8 @@
             'crust.servers.serveraccounts',
             'crust.supervisors',
             'crust.remoteusers',
-            'crust.commandgroups'
+            'crust.commandgroups',
+            'crust.commandpatterns'
         ]);
 
     angular

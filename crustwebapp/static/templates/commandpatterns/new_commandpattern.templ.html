@@ -1,0 +1,42 @@
+<br/>
+<form role="form" ng-submit="vm.submit()" class="form-horizontal">
+    <div class="form-group">
+        <label for="commandpattern__command_group" class="control-label col-xs-4">Command Group</label>
+        <div class="col-xs-7">
+            <select ng-model="vm.command_group" ng-options="item.command_group_name for item in commandgroups_data">
+                <option value="">- Select Parent Command Group -</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="commandpattern__pattern" class="control-label col-xs-4">Pattern</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="commandpattern__pattern"
+                   data-ng-model="vm.pattern" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="commandpattern__action" class="control-label col-xs-4">Match Action</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn btn-info" title="Allow Execution">
+                <input type="radio" data-ng-model="vm.action" ng-value="true" />
+                <i class="fa fa-check fa-lg"></i> Allow
+            </label>
+            <label class="radio-inline btn btn-warning" title="Deny Execution">
+                <input type="radio" data-ng-model="vm.action" ng-value="false" />
+                <i class="fa fa-times fa-lg"></i> Deny
+            </label>
+        </div>
+    </div>
+
+    <br/><br/>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-10">
+            <button type="submit" class="btn btn-success">
+                Add Command Pattern
+            </button>
+        </div>
+    </div>
+</form>

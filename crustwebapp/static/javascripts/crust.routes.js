@@ -58,6 +58,12 @@
                     controllerAs: 'vm',
                     templateUrl: '/static/templates/commandgroups/commandgroups.html'
                 }
+            ).when(
+                '/commandpatterns', {
+                    controller: 'CommandPatternsController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/commandpatterns/commandpatterns.html'
+                }
             ).otherwise('/dashboard');
     }
 })();

@@ -62,6 +62,7 @@ urlpatterns = patterns(
         CommandPatternsViewSet.as_view(),
         name='commandpattern-count'),
 
+
     ### Model View Routes
     url(r'^api/v1/', include(router.urls)),
 

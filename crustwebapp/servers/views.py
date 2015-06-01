@@ -1,5 +1,5 @@
 from rest_framework import permissions, viewsets
-from rest_framework import views, status
+from rest_framework import views, status, generics
 from rest_framework.response import Response
 
 from servers.models import ServerGroup, Server, ServerAccount
@@ -11,9 +11,17 @@ from authentication.permissions import IsAdmin
 
 ################# ServerGroups
 class ServerGroupsViewSet(viewsets.ModelViewSet):
-    queryset = ServerGroup.objects.all()
+    #queryset = ServerGroup.objects.all()
     serializer_class = ServerGroupSerializer
     #permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    def get_queryset(self):
+        queryset = ServerGroup.objects.all()
+        hint = self.request.query_params.get('hint', None)
+        if hint:
+            queryset = queryset.filter(group_name__icontains=hint)
+
+        return queryset
 
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -29,8 +37,16 @@ class ServerGroupsCountView(views.APIView):
 
 ################# Servers
 class ServersViewSet(viewsets.ModelViewSet):
-    queryset = Server.objects.all()
+    #queryset = Server.objects.all()
     serializer_class = ServerSerializer
+
+    def get_queryset(self):
+        queryset = Server.objects.all()
+        hint = self.request.query_params.get('hint', None)
+        if hint:
+            queryset = queryset.filter(server_name__icontains=hint)
+
+        return queryset
 
     def get_permission(self):
         # @todo: must check the requesters assign server-groups

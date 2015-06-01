@@ -8,8 +8,16 @@ from remoteusers.serializers  import RemoteUserSerializer
 
 
 class RemoteUsersViewSet(viewsets.ModelViewSet):
-    queryset = RemoteUser.objects.all()
+    #queryset = RemoteUser.objects.all()
     serializer_class = RemoteUserSerializer
+
+    def get_queryset(self):
+        queryset = RemoteUser.objects.all()
+        hint = self.request.query_params.get('hint', None)
+        if hint:
+            queryset = queryset.filter(username__icontains=hint)
+
+        return queryset
 
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:

@@ -62,3 +62,11 @@ class ServerAccount(models.Model):
             self.username,
             self.server
         )
+
+    @property
+    def get_server_account_repr(self):
+        return '%s://%s@%s'%(
+            self.protocol,
+            self.username,
+            self.server.server_name
+        )

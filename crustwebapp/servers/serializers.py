@@ -11,8 +11,8 @@ class ServerGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ServerGroup
-        fields = ('id', 'group_name', 'server_set', 'server_count')
-        read_only_fields = ('id','server_set', 'server_count')
+        fields = ('id', 'group_name', 'server_count')
+        read_only_fields = ('id', 'server_count')
 
 class ServerSerializer(serializers.ModelSerializer):
     server_group = ServerGroupSerializer(read_only=True, required=False)
@@ -47,13 +47,15 @@ class ServerAccountSerializer(serializers.ModelSerializer):
     @todo: fix the default value to something meaningfull and reliable
     """
     server = ServerSerializer(read_only=True, default=Server.objects.get(id=1))
+    server_account_repr = serializers.CharField(
+        source='get_server_account_repr', required=False, read_only=True)
 
     class Meta:
         model = ServerAccount
         fields = (
             'id', 'server', 'username', 'password',
             'protocol', 'sshv2_private_key', 'comment',
-            'is_locked'
+            'is_locked', 'server_account_repr'
         )
 
         read_only_fields = ('id',)

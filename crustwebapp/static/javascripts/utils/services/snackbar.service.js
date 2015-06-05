@@ -47,17 +47,24 @@
          * @param {Object} options Options for displaying the snackbar
          * @memberOf crust.utils.services.Snackbar
          */
-        function error(content, options) {
+        function error(content, options={}) {
+            options.timeout = 7000;
+            options.style='error-message';
             if(options.errors){
                 angular.forEach(
                     options.errors,
-                    function(key, val){
-                        _snackbar(key+' : '+val);
+                    function(val, key){
+                        var key_items = key.split(' ');
+                        var key_label = '';
+
+                        _snackbar(
+                            '<i class="fa fa-times fa-md"></i> '+key+' : '+val,
+                            options);
                     }
                 );
             }
             else
-                _snackbar('Error: ' + content, options);
+                _snackbar(' <i class="fa fa-times fa-md"></i> ' + content, options);
         }
 
 

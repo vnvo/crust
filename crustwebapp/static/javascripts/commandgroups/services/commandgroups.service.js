@@ -10,6 +10,7 @@
     function CommandGroups($http){
         var CommandGroups = {
             all: getAllCommandGroups,
+            getSuggestion: getCGSuggestion,
             get: getCommandGroup,
             count: getCGCount,
             create: createCommandGroup,
@@ -21,6 +22,13 @@
 
         function getAllCommandGroups(){
             return $http.get('/api/v1/commandgroups/');
+        }
+
+        function getCGSuggestion(hint){
+            return $http.get(
+                '/api/v1/commandgroups/',{
+                    params: {hint: hint}
+            });
         }
 
         function getCommandGroup(commandgroup_id){

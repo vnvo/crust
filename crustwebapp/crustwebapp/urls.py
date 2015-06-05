@@ -7,12 +7,9 @@ from authentication.views import SupervisorViewSet
 from authentication.views import LoginView
 from authentication.views import LogoutView
 
-from servers.views import ServerGroupsViewSet
-from servers.views import ServerGroupsCountView
-from servers.views import ServersViewSet
-from servers.views import ServersCountView
-from servers.views import ServerAccountsViewSet
-from servers.views import ServerAccountsCountView
+from servers.views import ServerGroupsViewSet, ServerGroupsCountView
+from servers.views import ServersViewSet, ServersCountView
+from servers.views import ServerAccountsViewSet, ServerAccountsCountView
 
 from remoteusers.views import RemoteUsersViewSet
 from remoteusers.views import RemoteUsersCountView
@@ -22,17 +19,21 @@ from commandgroups.views import CommandGroupsCountView
 from commandgroups.views import CommandPatternsViewSet
 from commandgroups.views import CommandPatternsCountView
 
+from remoteuseracl.views import RemoteUserACLViewSet
+from remoteuseracl.views import RemoteUserACLCountView
+
 from crustwebapp.views import IndexView
 
 # setup router
 router = routers.SimpleRouter()
 router.register(r'supervisors', SupervisorViewSet)
-router.register(r'servergroups', ServerGroupsViewSet)
-router.register(r'servers', ServersViewSet)
-router.register(r'serveraccounts', ServerAccountsViewSet)
-router.register(r'remoteusers', RemoteUsersViewSet)
-router.register(r'commandgroups', CommandGroupsViewSet)
+router.register(r'servergroups', ServerGroupsViewSet, base_name='servergroup')
+router.register(r'servers', ServersViewSet, base_name='server')
+router.register(r'serveraccounts', ServerAccountsViewSet, base_name='serveraccount')
+router.register(r'remoteusers', RemoteUsersViewSet, base_name='remoteuser')
+router.register(r'commandgroups', CommandGroupsViewSet, base_name='commandgroup')
 router.register(r'commandpatterns', CommandPatternsViewSet)
+router.register(r'remoteuseracls', RemoteUserACLViewSet)
 
 urlpatterns = patterns(
     '',
@@ -62,9 +63,14 @@ urlpatterns = patterns(
         CommandPatternsViewSet.as_view(),
         name='commandpattern-count'),
 
+    url(r'api/v1/remoteuseracls/count/$',
+        RemoteUserACLCountView.as_view(),
+        name='remoteuseracl-count'),
+
 
     ### Model View Routes
     url(r'^api/v1/', include(router.urls)),
+
 
     ### Authentication
     url(r'^api/v1/auth/login/$', LoginView.as_view(), name='login'),

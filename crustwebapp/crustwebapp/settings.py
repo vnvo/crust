@@ -43,7 +43,8 @@ INSTALLED_APPS = (
     'authentication',
     'servers',
     'remoteusers',
-    'commandgroups'
+    'commandgroups',
+    'remoteuseracl'
 )
 
 MIDDLEWARE_CLASSES = (

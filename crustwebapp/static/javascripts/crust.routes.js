@@ -64,6 +64,12 @@
                     controllerAs: 'vm',
                     templateUrl: '/static/templates/commandpatterns/commandpatterns.html'
                 }
+            ).when(
+                '/remoteuseracls', {
+                    controller: 'RemoteUserACLsController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/remoteuseracls/remoteuseracls.html'
+                }
             ).otherwise('/dashboard');
     }
 })();

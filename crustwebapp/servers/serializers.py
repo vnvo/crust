@@ -58,7 +58,7 @@ class ServerAccountSerializer(serializers.ModelSerializer):
             'is_locked', 'server_account_repr'
         )
 
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'server_account_repr')
 
     def get_validation_exclusions(self, *args, **kwargs):
         exclusions = super(ServerAccountSerializer, self).get_validation_exclusions()

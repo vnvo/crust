@@ -10,6 +10,7 @@
     function RemoteUsers($http){
         var RemoteUsers = {
             all: getAllRemoteUsers,
+            getSuggestion: getRemoteUsersSuggestion,
             get: getRemoteUser,
             create: createRemoteUser,
             update: updateRemoteUser,
@@ -22,6 +23,14 @@
 
         function getAllRemoteUsers(){
             return $http.get('/api/v1/remoteusers/');
+        }
+
+        function getRemoteUsersSuggestion(hint){
+            return $http.get(
+                '/api/v1/remoteusers/',{
+                    params: {hint: hint}
+                }
+            );
         }
 
         function getRemoteUser(remoteuser_id){

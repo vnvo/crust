@@ -41,7 +41,9 @@
                 $scope.closeThisDialog();
             }
             function submitError(data, status, headers, config){
-                Snackbar.error('Can not create Server. Check Input.');
+                Snackbar.error(
+                    'Can not create Server. Check Input.',
+                    {errors:data.data});
             }
         }
 

@@ -10,6 +10,7 @@
     function ServerAccounts($http){
         var ServerAccounts = {
             all: getAllServerAccounts,
+            getSuggestion: getServerSuggestion,
             get: getServerAccount,
             count: getCount,
             create: createServerAccount,
@@ -22,6 +23,13 @@
             return $http.get('/api/v1/serveraccounts/');
         }
 
+        function getServerSuggestion(hint){
+            return $http.get(
+                '/api/v1/serveraccounts/', {
+                    params: {hint:hint}
+                }
+            );
+        }
         function getServerAccount(serveraccount_id){
             return $http.get('/api/v1/serveraccounts/'+serveraccount_id+'/');
         }

@@ -14,6 +14,7 @@
     function Servers($http){
         var Servers = {
             all: getAllServers,
+            getSuggestion: getServersSuggestion,
             get: getServer,
             count: getCount,
             create: createServer,
@@ -25,6 +26,14 @@
 
         function getAllServers(){
             return $http.get('/api/v1/servers/');
+        }
+
+        function getServersSuggestion(hint){
+            return $http.get(
+                '/api/v1/servers/',{
+                    params: {hint:hint}
+                }
+            );
         }
 
         function getServer(server_id){

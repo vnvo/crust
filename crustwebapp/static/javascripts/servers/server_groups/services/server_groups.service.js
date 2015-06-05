@@ -17,6 +17,7 @@
     function ServerGroups($http){
         var ServerGroups = {
             all: allServerGroups,
+            getSuggestion: getServerGroupsSuggestion,
             getCount: getCount,
             create: createServerGroup,
             get: getServerGroup,
@@ -35,6 +36,19 @@
          */
         function allServerGroups(){
             return $http.get('/api/v1/servergroups/');
+        }
+
+        /**
+         * @name getServerGroupsSuggestion
+         * @desc Get Server Groups matching the hint
+         * @returns {Promise}
+         * @memberOf crust.servers.server_groups.services.ServerGroups
+         */
+        function getServerGroupsSuggestion(hint){
+            return $http.get(
+                '/api/v1/servergroups/',{
+                    params: {hint:hint}}
+            );
         }
 
         /**

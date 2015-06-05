@@ -85,8 +85,20 @@ class ServersCountView(views.APIView):
 
 ################# ServerAccount
 class ServerAccountsViewSet(viewsets.ModelViewSet):
-    queryset = ServerAccount.objects.all()
+    #queryset = ServerAccount.objects.all()
     serializer_class = ServerAccountSerializer
+
+    def get_queryset(self):
+        queryset = ServerAccount.objects.all()
+        hint = self.request.query_params.get('hint', None)
+        if hint: #username@server_name
+            hint = hint.split('@')
+            if hint[0]: #username
+                queryset = queryset.filter(username__icontains=hint[0])
+            if len(hint)> 1 and hint[1]:
+                queryset = queryset.filter(server__server_name__icontains=hint[1])
+
+        return queryset
 
     def get_permission(self):
         # @todo: must check the requesters assign server-groups

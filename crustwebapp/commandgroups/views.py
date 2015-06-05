@@ -10,8 +10,16 @@ from authentication.permissions import IsAdmin
 
 
 class CommandGroupsViewSet(viewsets.ModelViewSet):
-    queryset = CommandGroup.objects.all()
+    #queryset = CommandGroup.objects.all()
     serializer_class = CommandGroupSerializer
+
+    def get_queryset(self):
+        queryset = CommandGroup.objects.all()
+        hint = self.request.query_params.get('hint', None)
+        if hint:
+            queryset = queryset.filter(command_group_name__icontains=hint)
+
+        return queryset
 
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:

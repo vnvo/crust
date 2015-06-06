@@ -17,6 +17,7 @@
     function Supervisors($http){
         var Supervisors = {
             all: getAllSupervisors,
+            getSuggestion: getSupSuggestion,
             create: createSupervisor,
             get: getSupervisor,
             update: updateSupervisor,
@@ -33,6 +34,14 @@
          */
         function getAllSupervisors(){
             return $http.get('/api/v1/supervisors/');
+        }
+
+        function getSupSuggestion(hint){
+            return $http.get(
+                '/api/v1/supervisors/',{
+                    params: {hint: hint}
+                }
+            );
         }
 
         /**

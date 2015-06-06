@@ -1,0 +1,15 @@
+<div class="ngCellText">
+    <!-- When supervisoracl.is_active == true -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)==true">
+        <button class="btn btn-info" title="Supervisor ACL is Active" ng-click="toggleSupACLActive($event, row)">
+            <i class="fa fa-unlock fa-xs"></i>
+        </button>
+    </div>
+
+    <!-- When supervisoracl.is_active == false -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)==false">
+        <button class="btn btn-warning" title="Supervisor ACL is Inactive" ng-click="toggleSupACLActive($event, row)">
+            <i class="fa fa-lock fa-xs"></i>
+        </button>
+    </div>
+</div>

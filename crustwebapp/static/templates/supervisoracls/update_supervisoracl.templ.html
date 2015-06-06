@@ -1,0 +1,130 @@
+<br/>
+<form role="form" ng-submit="vm.update()" class="form-horizontal">
+    <div class="form-group">
+        <label for="supervisoracl__supervisor" class="control-label col-xs-4">Supervisor</label>
+        <div class="col-xs-5">
+            <input type="text" class="form-control" id="supervisoracl__supervisor"
+                   autocomplete="off" data-ng-model="vm.supervisor"
+                   typeahead="item as item.username for item in vm.getSupSuggestion($viewValue) | filter:$viewValue"
+                   typeahead-wait-ms=1000
+                   typeahead-loading="loadingSupervisors"
+                   />
+            <i ng-show="loadingSupervisors" class="fa fa-spinner fa-spin"></i>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="remoteuseracl__match_type" class="control-label col-xs-4">Match By</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn" title="Match By Server Group">
+                <input type="radio" name="match_type" data-ng-model="vm.match_type"
+                       value="servergroup" />
+                <i class="fa fa-sitemap fa-lg"></i> Server Group
+            </label>
+            <label class="radio-inline btn" title="Match By Server">
+                <input type="radio" name="match_type" data-ng-model="vm.match_type"
+                       value="server" />
+                <i class="fa fa-server fa-lg"></i> Server
+            </label>
+            <label class="radio-inline btn" title="Match By Remote User">
+                <input type="radio" name="match_type" data-ng-model="vm.match_type"
+                       value="remoteuser" />
+                <i class="fa fa-android fa-lg"></i> Remote User
+            </label>
+            <label class="radio-inline btn" title="Match By Command Group">
+                <input type="radio" name="match_type" data-ng-model="vm.match_type"
+                       value="commandgroup" />
+                <i class="fa fa-terminal fa-lg"></i> Command Group
+            </label>
+
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="vm.match_type === 'servergroup'">
+        <label for="remoteuseracl__server_group" class="control-label col-xs-4">Server Group</label>
+        <div class="col-xs-7">
+            <input type="text" class="form-control" id="remoteuseracl__server_group"
+                   autocomplete="off" data-ng-model="vm.server_group"
+                   typeahead="item as item.group_name for item in vm.getServerGroupsSuggestion($viewValue)"
+                   typeahead-wait-ms=1000 typeahead-editable=false
+                   typeahead-loading="loadingServerGroups"
+                   />
+            <i ng-show="loadingServerGroups" class="fa fa-spinner fa-spin"></i>
+        </div>
+    </div>
+    <div class="form-group" ng-show="vm.match_type === 'server'">
+        <label for="remoteuseracl__server" class="control-label col-xs-4">Server</label>
+        <div class="col-xs-7">
+            <input type="text" class="form-control" id="remoteuseracl__server"
+                   autocomplete="off" data-ng-model="vm.server"
+                   typeahead="item as item.server_name for item in vm.getServersSuggestion($viewValue)"
+                   typeahead-wait-ms=1000 typeahead-editable=false
+                   typeahead-loading="loadingServers"
+                   />
+            <i ng-show="loadingServers" class="fa fa-spinner fa-spin"></i>
+        </div>
+    </div>
+    <div class="form-group" ng-show="vm.match_type == 'remoteuser' ">
+        <label for="remoteuseracl__remote_user" class="control-label col-xs-4">Remote User</label>
+        <div class="col-xs-5">
+            <input type="text" class="form-control" id="remotuseracl__remote_user"
+                   autocomplete="off" data-ng-model="vm.remote_user"
+                   typeahead="item as item.username for item in vm.getRemoteUsersSuggestion($viewValue) | filter:$viewValue"
+                   typeahead-wait-ms=1000
+                   typeahead-loading="loadingRemoteUsers"
+                   />
+            <i ng-show="loadingRemoteUsers" class="fa fa-spinner fa-spin"></i>
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="vm.match_type == 'commandgroup'">
+        <label for="remoteuseracl__command_group" class="control-label col-xs-4">Command Group</label>
+        <div class="col-xs-7">
+            <input type="text" class="form-control" id="remoteuseracl__command_group"
+                   autocomplete="off" data-ng-model="vm.command_group"
+                   typeahead="item as item.command_group_name for item in vm.getCommandGroupsSuggestion($viewValue)"
+                   typeahead-wait-ms=1000 typeahead-editable=false
+                   typeahead-loading="loadingCommandGroups"
+                   />
+            <i ng-show="loadingCommandGroups" class="fa fa-spinner fa-spin"></i>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="serveraccount__is_active" class="control-label col-xs-4">Is Active</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn btn-info" title="ACL is Active">
+                <input type="radio" data-ng-model="vm.is_active" ng-value="true">
+                <i class="fa fa-unlock fa-lg"></i>
+            </label>
+            <label class="radio-inline btn btn-warning" title="ACL is Inactive">
+                <input type="radio" data-ng-model="vm.is_active" ng-value="false">
+                <i class="fa fa-lock fa-lg"></i>
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="serveraccount__acl_action" class="control-label col-xs-4">ACL Action</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn btn-info" title="Allow">
+                <input type="radio" data-ng-model="vm.acl_action" value="allow">
+                <i class="fa fa-check fa-lg"></i>
+            </label>
+            <label class="radio-inline btn btn-warning" title="Deny">
+                <input type="radio" data-ng-model="vm.acl_action" value="deny">
+                <i class="fa fa-times fa-lg"></i>
+            </label>
+        </div>
+    </div>
+    <br/><br/>
+    <div class="form-actions">
+        <div class="col-xs-offset-2 col-xs-10">
+            <button type="submit" class="btn btn-primary">
+                Update Supervisor ACL
+            </button>
+        </div>
+    </div>
+    <br/><br/>
+
+</form>

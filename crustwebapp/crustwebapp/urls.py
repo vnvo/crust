@@ -22,11 +22,14 @@ from commandgroups.views import CommandPatternsCountView
 from remoteuseracl.views import RemoteUserACLViewSet
 from remoteuseracl.views import RemoteUserACLCountView
 
+from supervisoracl.views import SupervisorACLViewSet
+from supervisoracl.views import SupervisorACLCountView
+
 from crustwebapp.views import IndexView
 
 # setup router
 router = routers.SimpleRouter()
-router.register(r'supervisors', SupervisorViewSet)
+router.register(r'supervisors', SupervisorViewSet, base_name='supervisor')
 router.register(r'servergroups', ServerGroupsViewSet, base_name='servergroup')
 router.register(r'servers', ServersViewSet, base_name='server')
 router.register(r'serveraccounts', ServerAccountsViewSet, base_name='serveraccount')
@@ -34,6 +37,7 @@ router.register(r'remoteusers', RemoteUsersViewSet, base_name='remoteuser')
 router.register(r'commandgroups', CommandGroupsViewSet, base_name='commandgroup')
 router.register(r'commandpatterns', CommandPatternsViewSet)
 router.register(r'remoteuseracls', RemoteUserACLViewSet)
+router.register(r'supervisoracls', SupervisorACLViewSet)
 
 urlpatterns = patterns(
     '',
@@ -60,13 +64,16 @@ urlpatterns = patterns(
         name='commandgroups-count'),
 
     url(r'api/v1/commandpatterns/count/$',
-        CommandPatternsViewSet.as_view(),
+        CommandPatternsCountView.as_view(),
         name='commandpattern-count'),
 
     url(r'api/v1/remoteuseracls/count/$',
         RemoteUserACLCountView.as_view(),
         name='remoteuseracl-count'),
 
+    url(r'api/v1/supervisoracls/count/$',
+        SupervisorACLCountView.as_view(),
+        name='supervisoracl-count'),
 
     ### Model View Routes
     url(r'^api/v1/', include(router.urls)),

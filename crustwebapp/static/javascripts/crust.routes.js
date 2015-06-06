@@ -70,6 +70,12 @@
                     controllerAs: 'vm',
                     templateUrl: '/static/templates/remoteuseracls/remoteuseracls.html'
                 }
+            ).when(
+                '/supervisoracls', {
+                    controller: 'SupervisorACLsController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/supervisoracls/supervisoracls.html'
+                }
             ).otherwise('/dashboard');
     }
 })();

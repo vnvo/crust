@@ -47,8 +47,16 @@ class LoginView(views.APIView):
 
 class SupervisorViewSet(viewsets.ModelViewSet):
 
-    queryset = Supervisor.objects.all()
+    #queryset = Supervisor.objects.all()
     serializer_class = SupervisorSerializer
+
+    def get_queryset(self):
+        queryset = Supervisor.objects.all()
+        hint = self.request.query_params.get('hint', None)
+        if hint:
+            queryset = queryset.filter(username__icontains=hint)
+
+        return queryset
 
     def get_permissions(self):
         return (permissions.IsAuthenticated(), IsAdmin(),)

@@ -16,7 +16,8 @@
             'crust.remoteusers',
             'crust.commandgroups',
             'crust.commandpatterns',
-            'crust.remoteuseracls'
+            'crust.remoteuseracls',
+            'crust.supervisoracls'
         ]);
 
     angular

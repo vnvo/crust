@@ -1,0 +1,15 @@
+<div class="ngCellText">
+    <!-- When remoteuseracl.is_active == true -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)==true">
+        <button class="btn btn-info" title="Remote User ACL is Active" ng-click="toggleRuACLActive($event, row)">
+            <i class="fa fa-unlock fa-xs"></i>
+        </button>
+    </div>
+
+    <!-- When remoteuseracl.is_active == false -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)==false">
+        <button class="btn btn-warning" title="Remote User ACL is Inactive" ng-click="toggleRuACLActive($event, row)">
+            <i class="fa fa-lock fa-xs"></i>
+        </button>
+    </div>
+</div>

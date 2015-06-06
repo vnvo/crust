@@ -1,0 +1,15 @@
+<div class="ngCellText">
+    <!-- When supervisoracl.acl_action == 'allow' -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)=='allow'">
+        <button class="btn btn-info" title="Allow" ng-click="toggleRuACLAction($event, row)">
+            <i class="fa fa-check fa-xs"></i>
+        </button>
+    </div>
+
+    <!-- When supervisoracl.acl_action == 'deny' -->
+    <div class="btn-group" ng-show="row.getProperty(col.field)=='deny'">
+        <button class="btn btn-warning" title="Deny" ng-click="toggleRuACLAction($event, row)">
+            <i class="fa fa-times fa-xs"></i>
+        </button>
+    </div>
+</div>

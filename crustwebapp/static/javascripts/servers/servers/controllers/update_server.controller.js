@@ -18,9 +18,9 @@
         getServerInfo();
 
         function getServerGroups(){
-            ServerGroups.all().then(getSGSuccess, getSGError);
+            ServerGroups.all(100,1).then(getSGSuccess, getSGError);
             function getSGSuccess(data, status, headers, config){
-                $scope.servergroups_data = data.data;
+                $scope.servergroups_data = data.data.results;
             }
             function getSGError(data, status, headers, config){
                 Snackbar.error('Can not get Server Groups');

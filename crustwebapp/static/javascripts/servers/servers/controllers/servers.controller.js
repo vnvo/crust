@@ -16,8 +16,8 @@
     function ServersController($scope, Servers, Snackbar, ngDialog){
         var vm = this;
 
-        vm.getServers = getServers;
-        getServers();
+        //vm.getServers = getServers;
+        //getServers();
 
         $scope.deleteServer = deleteServer;
         $scope.startUpdateDialog = startUpdateDialog;
@@ -51,7 +51,7 @@
             }
         }
 
-        function getServers(){
+        /*function getServers(){
             Servers.all().then(getAllSuccess, getAllError);
             function getAllSuccess(data, status, headers, config){
                 $scope.servers_data = data.data;
@@ -59,7 +59,7 @@
             function getAllError(data, status, headers, config){
                 Snackbar.error('Can not get Servers');
             }
-        }
+        }*/
 
         // listen for creation/update events
         $scope.$on(
@@ -72,6 +72,57 @@
         );
 
         // Init/config ngGrid instance
+        $scope.totalServerItems = 0;
+        $scope.pagingOptions = {
+            pageSizes: [5, 10, 20, 50],
+            pageSize: 10,
+            currentPage: 1
+        };
+
+        $scope.setPagingData = function(data, page, pageSize){
+            var pagedData = data.results;//.slice((page - 1) * pageSize, page * pageSize);
+            $scope.servers_data = pagedData;
+            $scope.totalServerItems = data.count;
+            if (!$scope.$$phase) {
+                $scope.$apply();
+            }
+        };
+
+        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+            setTimeout(function () {
+                var data;
+
+                Servers.all(pageSize, page).then(
+                    getAllServersSuccess, getAllServersError
+                );
+                function getAllServersSuccess(data, status, headers, config){
+                    $scope.setPagingData(data.data, page, pageSize);
+                }
+                function getAllServersError(data, status, headers, config){
+                    Snackbar.error('Can not get Servers data.',
+                                   {errors:data.data});
+                }
+            }, 100);
+        };
+
+        $scope.$watch('pagingOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
+                $scope.getPagedDataAsync(
+                    $scope.pagingOptions.pageSize,
+                    $scope.pagingOptions.currentPage,
+                    'test');
+            }
+        }, true);
+
+        function getServers(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage
+            );
+        }
+
+        getServers();
+
         $scope.gridOptions = {
             data: 'servers_data',
             rowHeight: 35,
@@ -98,11 +149,7 @@
                 }
             ],
             plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions:{
-                pageSizes: [5, 20, 50],
-                pageSize: 5,
-                currentPage: 1
-            }
+            pagingOptions: $scope.pagingOptions
         };
     }
 

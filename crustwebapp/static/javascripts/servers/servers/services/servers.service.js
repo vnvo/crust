@@ -24,8 +24,10 @@
 
         return Servers;
 
-        function getAllServers(){
-            return $http.get('/api/v1/servers/');
+        function getAllServers(pageSize, page){
+            return $http.get('/api/v1/servers/',{
+                params: {page_size:pageSize, page:page}
+            });
         }
 
         function getServersSuggestion(hint){

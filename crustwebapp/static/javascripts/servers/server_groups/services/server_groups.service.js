@@ -27,15 +27,16 @@
 
         return ServerGroups;
 
-
         /**
          * @name allServerGroups
          * @desc Get all ServerGroups
          * @returns {Promise}
          * @memberOf crust.servers.server_groups.services.ServerGroups
          */
-        function allServerGroups(){
-            return $http.get('/api/v1/servergroups/');
+        function allServerGroups(pageSize, page){
+            return $http.get('/api/v1/servergroups/', {
+                params: {page_size: pageSize, page:page}
+            });
         }
 
         /**

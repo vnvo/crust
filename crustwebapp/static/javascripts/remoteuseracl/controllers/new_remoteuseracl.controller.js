@@ -32,7 +32,7 @@
                 getSGSuggestionSuccess, getSGSuggestionError
             );
             function getSGSuggestionSuccess(data, status, headers, config){
-                return data.data;
+                return data.data.results;
             }
             function getSGSuggestionError(data, status, headers, config){
                 Snackbar.error('Can not get Server Groups data.');
@@ -44,7 +44,7 @@
                 getServerSuggestionSuccess, getServerSuggestionError
             );
             function getServerSuggestionSuccess(data, status, headers, config){
-                return data.data;
+                return data.data.results;
             }
             function getServerSuggestionError(data, status, headers, config){
                 Snackbar.error('Can not get Servers data.');
@@ -56,7 +56,7 @@
                 getSASuggestionSuccess, getSASuggestionError
             );
             function getSASuggestionSuccess(data, status, headers, config){
-                return data.data;
+                return data.data.results;
             }
             function getSASuggestionError(data, status, headers, config){
                 Snackbar.error('Can not get Server Accounts data');
@@ -68,7 +68,7 @@
                 getRUSuggestionSuccess, getRUSuggestionError
             );
             function getRUSuggestionSuccess(data, status, headers, config){
-                return data.data;
+                return data.data.results;
             }
             function getRUSuggestionError(data, status, headers, config){
                 Snackbar.error('Can not get Remote Users data.');
@@ -80,7 +80,7 @@
                 getCGSuggestionSuccess, getCGSuggestionError
             );
             function getCGSuggestionSuccess(data, status, headers, config){
-                return data.data;
+                return data.data.results;
             }
             function getCGSuggestionError(data, status, headers, config){
                 Snackbar.error(

@@ -1,7 +1,7 @@
 from rest_framework import permissions, viewsets
 from rest_framework import views, status
 from rest_framework.response import Response
-
+from rest_framework.pagination import PageNumberPagination
 from servers.models import ServerGroup, Server, ServerAccount
 from commandgroups.models import CommandGroup
 from remoteusers.models import RemoteUser
@@ -14,8 +14,10 @@ from authentication.permissions import IsAdmin
 class RemoteUserACLViewSet(viewsets.ModelViewSet):
     queryset = RemoteUserACL.objects.all()
     serializer_class = RemoteUserACLSerializer
+    #pagination_class = PageNumberPagination
 
     def get_permission(self):
+        print self.pagination_class
         if self.request.method in permissions.SAFE_METHODS:
             return (permissions.IsAuthenticated, )
         return (permissions.IsAuthenticated(), IsAdmin())

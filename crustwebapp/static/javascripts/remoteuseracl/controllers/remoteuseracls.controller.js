@@ -12,9 +12,10 @@
     function RemoteUserACLsController($scope, RemoteUserACLs, Snackbar, ngDialog){
         var vm = this;
 
-        getRuACLs();
+        //getRuACLs();
         $scope.deleteRuACL = deleteRuACL;
         $scope.toggleRuACLActive = toggleRuACLActive;
+        $scope.toggleRuACLAction = toggleRuACLAction;
         $scope.startRuACLUpdateDialog = startRuACLUpdateDialog;
 
         function startRuACLUpdateDialog(event, grid_row){
@@ -48,19 +49,45 @@
         }
 
         function toggleRuACLActive(event, grid_row){
+            var ru_acl_info = grid_row.entity;
+            ru_acl_info.is_active = !ru_acl_info.is_active;
+            RemoteUserACLs.update(
+                ru_acl_info.id,
+                ru_acl_info
+            ).then(toggleRuACLActiveSuccess, toggleRuACLActiveError);
 
+            event.stopPropagation();
+
+            function toggleRuACLActiveSuccess(data, status, header, config){
+                Snackbar.show('Remote User ACL Active Status Changed Successfuly');
+                console.log(data.data);
+                getRuACLs();
+            }
+            function toggleRuACLActiveError(data, status, header, config){
+                Snackbar.error('Can not update Remote User ACL.',
+                               {errors: data.data});
+                console.log(data);
+            }
         }
 
-        function getRuACLs(){
-            RemoteUserACLs.all().then(
-                getAllRuACLsSuccess, getAllRuACLsError
-            );
-            function getAllRuACLsSuccess(data, status, headers, config){
-                $scope.remoteuseracls_data = data.data;
+        function toggleRuACLAction(event, grid_row){
+            var ru_acl_info = grid_row.entity;
+            ru_acl_info.acl_action = (ru_acl_info.acl_action=='allow' ? 'deny':'allow');
+            RemoteUserACLs.update(
+                ru_acl_info.id,
+                ru_acl_info
+            ).then(toggleRuACLActionSuccess, toggleRuACLActionError);
+            event.stopPropagation();
+
+            function toggleRuACLActionSuccess(data, status, header, config){
+                Snackbar.show('Remote User ACL Action Status Changed Successfuly');
+                console.log(data.data);
+                getRuACLs();
             }
-            function getAllRuACLsError(data, status, headers, config){
-                Snackbar.error('Can not get Remote User ACLs data.',
-                               {errors:data.data});
+            function toggleRuACLActionError(data, status, header, config){
+                Snackbar.error('Can not update Remote User ACL.',
+                               {errors: data.data});
+                console.log(data);
             }
         }
 
@@ -75,6 +102,61 @@
         );
 
         // Init/config ngGrid instance
+
+        $scope.totalServerItems = 0;
+        $scope.pagingOptions = {
+            pageSizes: [5, 10, 20, 50],
+            pageSize: 10,
+            currentPage: 1
+        };
+
+        $scope.setPagingData = function(data, page, pageSize){
+            var pagedData = data.results;//.slice((page - 1) * pageSize, page * pageSize);
+            $scope.remoteuseracls_data = pagedData;
+            $scope.totalServerItems = data.count;
+            if (!$scope.$$phase) {
+                $scope.$apply();
+            }
+        };
+
+        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+            setTimeout(function () {
+                var data;
+
+                RemoteUserACLs.all(pageSize, page).then(
+                    getAllRuACLsSuccess, getAllRuACLsError
+                );
+                function getAllRuACLsSuccess(data, status, headers, config){
+                    //$scope.remoteuseracls_data = data.data;
+                    $scope.setPagingData(data.data, page, pageSize);
+
+                }
+                function getAllRuACLsError(data, status, headers, config){
+                    Snackbar.error('Can not get Remote User ACLs data.',
+                                   {errors:data.data});
+                }
+            }, 100);
+        };
+
+        $scope.$watch('pagingOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
+                $scope.getPagedDataAsync(
+                    $scope.pagingOptions.pageSize,
+                    $scope.pagingOptions.currentPage,
+                    'test');
+            }
+        }, true);
+
+
+        function getRuACLs(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage
+            );
+        }
+
+        getRuACLs();
+
         $scope.gridOptions = {
             data: 'remoteuseracls_data',
             rowHeight: 35,
@@ -93,18 +175,18 @@
                 {field: 'server.server_name', displayName: 'Server', width: 120},
                 {field: 'server_account.server_account_repr', displayName: 'Server Account', width:200},
                 {field: 'command_group.command_group_name', displayName: 'Command Group', width: 130},
-                {field: 'is_active', displayName: 'Is Active', width: 69},
-                {field: 'acl_action', displayName: 'ACL Action', width: 88},
+                {field: 'is_active', displayName: 'Is Active', width: 69,
+                 cellTemplate: '/static/templates/remoteuseracls/grid_cell.is_active.templ.html'
+                },
+                {field: 'acl_action', displayName: 'ACL Action', width: 88,
+                 cellTemplate: '/static/templates/remoteuseracls/grid_cell.acl_action.templ.html'
+                },
                 {field: '', displayName: 'Actions', width:50,
                  cellTemplate: '/static/templates/remoteuseracls/grid_cell.actions.templ.html'
                 }
             ],
             plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions:{
-                pageSizes: [5, 20, 50],
-                pageSize: 5,
-                currentPage: 1
-            }
+            pagingOptions: $scope.pagingOptions
         };
 
 

@@ -19,8 +19,16 @@
 
         return CommandPatterns;
 
-        function getAllCommandPatterns(){
-            return $http.get('/api/v1/commandpatterns/');
+        function getAllCommandPatterns(page_size, page){
+            return $http.get('/api/v1/commandpatterns/', {
+                params: {page_size:page_size, page:page}
+            });
+        }
+
+        function getCPSuggestion(hint){
+            return $http.get('/api/v1/commandpatterns/', {
+                params: {hint: hint}
+            });
         }
 
         function getCommandPattern(commandpattern_id){

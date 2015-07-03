@@ -12,7 +12,6 @@
     function CommandPatternsController($scope, CommandPatterns, Snackbar, ngDialog){
         var vm = this;
 
-        getCommandPatterns();
         $scope.deleteCommandPattern = deleteCommandPattern;
         $scope.startCPUpdateDialog = startCPUpdateDialog;
 
@@ -43,19 +42,6 @@
             }
         }
 
-
-        function getCommandPatterns(){
-            CommandPatterns.all().then(
-                getAllCPSuccess, getAllCPError
-            );
-            function getAllCPSuccess(data, status, headers, config){
-                $scope.commandpatterns_data = data.data;
-            }
-            function getAllCPError(data, status, headers, config){
-                Snackbar.error('Can not get Command Patterns data');
-            }
-        }
-
         // listen for creation/update events
         $scope.$on(
             'commandpattern.created',
@@ -67,6 +53,56 @@
         );
 
         // Init/config ngGrid instance
+        $scope.totalServerItems = 0;
+        $scope.pagingOptions = {
+            pageSizes: [5, 10, 20, 50],
+            pageSize: 10,
+            currentPage: 1
+        };
+
+        $scope.setPagingData = function(data, page, pageSize){
+            var pagedData = data.results;
+            $scope.commandpatterns_data = pagedData;
+            $scope.totalServerItems = data.count;
+            if (!$scope.$$phase) {
+                $scope.$apply();
+            }
+        };
+
+        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+            setTimeout(function () {
+                var data;
+
+                CommandPatterns.all(pageSize, page).then(
+                    getAllCPSuccess, getAllCPError
+                );
+                function getAllCPSuccess(data, status, headers, config){
+                    $scope.setPagingData(data.data, page, pageSize);
+                }
+                function getAllCPError(data, status, headers, config){
+                    Snackbar.error('Can not get Command Patterns data.',
+                                   {errors:data.data});
+                }
+            }, 100);
+        };
+
+        $scope.$watch('pagingOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
+                $scope.getPagedDataAsync(
+                    $scope.pagingOptions.pageSize,
+                    $scope.pagingOptions.currentPage,
+                    'test');
+            }
+        }, true);
+
+        function getCommandPatterns(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage
+            );
+        }
+        getCommandPatterns();
+
         $scope.gridOptions = {
             data: 'commandpatterns_data',
             rowHeight: 35,
@@ -89,11 +125,7 @@
                 }
             ],
             plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions:{
-                pageSizes: [5, 20, 50],
-                pageSize: 5,
-                currentPage: 1
-            }
+            pagingOptions: $scope.pagingOptions
         };
     }
 

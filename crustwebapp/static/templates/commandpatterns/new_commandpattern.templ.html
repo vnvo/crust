@@ -3,9 +3,14 @@
     <div class="form-group">
         <label for="commandpattern__command_group" class="control-label col-xs-4">Command Group</label>
         <div class="col-xs-7">
-            <select ng-model="vm.command_group" ng-options="item.command_group_name for item in commandgroups_data">
-                <option value="">- Select Parent Command Group -</option>
-            </select>
+            <input type="text" class="form-control" id="commandpattern__command_group"
+                   autocomplete="off" data-ng-model="vm.command_group"
+                   typeahead="item as item.command_group_name for item in vm.getCGSuggestion($viewValue)"
+                   typeahead-wait-ms=1000 typeahead-editable=false
+                   typeahead-loading="loadingCommandGroups"
+                   />
+            <i ng-show="loadingCommandGroups" class="fa fa-spinner fa-spin"></i>
+
         </div>
     </div>
 

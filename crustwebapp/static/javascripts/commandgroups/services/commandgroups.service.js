@@ -20,8 +20,10 @@
 
         return CommandGroups;
 
-        function getAllCommandGroups(){
-            return $http.get('/api/v1/commandgroups/');
+        function getAllCommandGroups(page_size, page){
+            return $http.get('/api/v1/commandgroups/', {
+                params: {page_size:page_size, page:page}
+            });
         }
 
         function getCGSuggestion(hint){

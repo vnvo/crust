@@ -21,8 +21,10 @@
         return RemoteUsers;
 
 
-        function getAllRemoteUsers(){
-            return $http.get('/api/v1/remoteusers/');
+        function getAllRemoteUsers(page_size, page){
+            return $http.get('/api/v1/remoteusers/', {
+                params: {page_size: page_size, page:page}
+            });
         }
 
         function getRemoteUsersSuggestion(hint){

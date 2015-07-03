@@ -120,9 +120,7 @@
                 $scope.pagingOptions.currentPage
             );
         }
-
         getServers();
-
         $scope.gridOptions = {
             data: 'servers_data',
             rowHeight: 35,

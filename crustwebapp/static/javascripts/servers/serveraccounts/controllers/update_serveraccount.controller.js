@@ -15,14 +15,14 @@
         var vm = this;
         vm.update = update;
         $scope.protocol_data = ['ssh', 'telnet', 'ssh and telnet'];
-
-        getServers();
+        vm.getServersSuggestion = getServersSuggestion;
         getServerAccountInfo();
 
-        function getServers(){
-            Servers.all().then(getServersSuccess, getServersError);
+        function getServersSuggestion($viewValue){
+            return Servers.getSuggestion($viewValue).then(
+                getServersSuccess, getServersError);
             function getServersSuccess(data, status, headers, config){
-                $scope.servers_data = data.data;
+                return data.data.results;
             }
             function getServersError(data, status, headers, config){
                 Snackbar.error('Can not get Servers');

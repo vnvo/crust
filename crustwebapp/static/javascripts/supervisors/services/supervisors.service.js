@@ -32,8 +32,10 @@
          * @returns {Promise}
          * @memberOf crust.supervisors.services.Supervisors
          */
-        function getAllSupervisors(){
-            return $http.get('/api/v1/supervisors/');
+        function getAllSupervisors(page_size, page){
+            return $http.get('/api/v1/supervisors/', {
+                params: {page_size: page_size, page: page}
+            });
         }
 
         function getSupSuggestion(hint){

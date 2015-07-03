@@ -15,15 +15,14 @@
         var vm = this;
 
         vm.submit = submit;
+        vm.getCGSuggestion = getCGSuggestion;
 
-        getCommandGroups();
-
-        function getCommandGroups(){
-            CommandGroups.all().then(
+        function getCGSuggestion($viewValue){
+            return CommandGroups.getSuggestion($viewValue).then(
                 getCGSuccess, getCGError
             );
             function getCGSuccess(data, status, headers, config){
-                $scope.commandgroups_data = data.data;
+                return data.data.results;
             }
             function getCGError(data, status, headers, config){
                 Snackbar.error('Can not get Command Groups data.');
@@ -46,6 +45,5 @@
                 Snackbar.error('Can not create Command Pattern, check input.');
             }
         }
-
     }
 })();

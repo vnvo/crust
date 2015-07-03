@@ -21,8 +21,6 @@
         var vm = this;
 
         $scope.supervisors_data = [];
-        getSupervisors();
-
         $scope.toggleIsActive = toggleIsActive;
         $scope.deleteSupervisor = deleteSupervisor;
         $scope.startUpdateDialog = startUpdateDialog;
@@ -74,19 +72,6 @@
             }
         }
 
-
-        function getSupervisors(){
-            Supervisors.all().then(getSupervisorsSuccess, getSupervisorsError);
-
-            function getSupervisorsSuccess(data, status, header, config){
-                console.log(data);
-                $scope.supervisors_data = data.data;
-            }
-            function getSupervisorsError(data, status, header, config){
-                Snackbar.error('Error in getting Supervisors data:'+data.message);
-            }
-        }
-
         /**
          * @name deleteSupervisor
          * @desc delete the selected supervisor. stop event propagation
@@ -123,6 +108,56 @@
                   );
 
         // Init/config ngGrid instance
+        $scope.totalServerItems = 0;
+        $scope.pagingOptions = {
+            pageSizes: [5, 10, 20, 50],
+            pageSize: 10,
+            currentPage: 1
+        };
+
+        $scope.setPagingData = function(data, page, pageSize){
+            var pagedData = data.results;//.slice((page - 1) * pageSize, page * pageSize);
+            $scope.supervisors_data = pagedData;
+            $scope.totalServerItems = data.count;
+            if (!$scope.$$phase) {
+                $scope.$apply();
+            }
+        };
+
+        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+            setTimeout(function () {
+                var data;
+
+                Supervisors.all(pageSize, page).then(
+                    getAllSupSuccess, getAllSupError
+                );
+                function getAllSupSuccess(data, status, headers, config){
+                    $scope.setPagingData(data.data, page, pageSize);
+                }
+                function getAllSupError(data, status, headers, config){
+                    Snackbar.error('Can not get Supervisors data.',
+                                   {errors:data.data});
+                }
+            }, 100);
+        };
+
+        $scope.$watch('pagingOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
+                $scope.getPagedDataAsync(
+                    $scope.pagingOptions.pageSize,
+                    $scope.pagingOptions.currentPage,
+                    'test');
+            }
+        }, true);
+
+        function getSupervisors(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage
+            );
+        }
+        getSupervisors();
+
         $scope.gridOptions = {
             data: 'supervisors_data',
             rowHeight: 35,
@@ -148,13 +183,7 @@
                 }
             ],
             plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions:{
-                pageSizes: [5, 20, 50],
-                pageSize: 5,
-                currentPage: 1
-            }
+            pagingOptions: $scope.pagingOptions
         };
-
     }
-
 })();

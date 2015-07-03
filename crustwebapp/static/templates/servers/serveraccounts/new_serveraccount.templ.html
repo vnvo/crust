@@ -2,10 +2,14 @@
 <form role="form" ng-submit="vm.submit()" class="form-horizontal">
     <div class="form-group">
         <label for="serveraccount__server" class="control-label col-xs-4">Server</label>
-        <div class="col-xx-7">
-            <select ng-model="vm.server" ng-options="item.server_name for item in servers_data">
-                <option value="">- Select Server -</option>
-            </select>
+        <div class="col-xs-7">
+            <input type="text" class="form-control" id="serveraccount__server"
+                   autocomplete="off" data-ng-model="vm.server"
+                   typeahead="item as item.server_name for item in vm.getServersSuggestion($viewValue)"
+                   typeahead-wait-ms=1000 typeahead-editable=false
+                   typeahead-loading="loadingServers"
+                   />
+            <i ng-show="loadingServers" class="fa fa-spinner fa-spin"></i>
         </div>
     </div>
 

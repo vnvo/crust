@@ -12,8 +12,6 @@
     function CommandGroupsController($scope, CommandGroups, Snackbar, ngDialog){
         var vm = this;
 
-        getCommandGroups();
-
         $scope.deleteCommandGroup = deleteCommandGroup;
         $scope.startCGUpdateDialog = startCGUpdateDialog;
 
@@ -29,9 +27,9 @@
 
         function deleteCommandGroup(event, grid_row){
             event.stopPropagation();
-            if(!confirm('You are deleting a command group, Are you sure?')){
+            if(!confirm('You are deleting a command group, Are you sure?'))
                 return false;
-            }
+
 
             CommandGroups.delete(grid_row.entity.id).then(
                 delCGSuccess, delCGError
@@ -42,19 +40,6 @@
             }
             function delCGError(data, status, headers, config){
                 Snackbar.error('Can not delete Command Group');
-            }
-        }
-
-        function getCommandGroups(){
-            CommandGroups.all().then(
-                getAllCGSuccess, getAllCGError
-            );
-
-            function getAllCGSuccess(data, status, headers, config){
-                $scope.commandgroups_data = data.data;
-            }
-            function getAllCGError(data, status, headers, config){
-                Snackbar.error('Can not get Command Groups Data.');
             }
         }
 
@@ -70,6 +55,56 @@
         );
 
         // Init/config ngGrid instance
+        $scope.totalServerItems = 0;
+        $scope.pagingOptions = {
+            pageSizes: [5, 10, 20, 50],
+            pageSize: 10,
+            currentPage: 1
+        };
+
+        $scope.setPagingData = function(data, page, pageSize){
+            var pagedData = data.results;
+            $scope.commandgroups_data = pagedData;
+            $scope.totalServerItems = data.count;
+            if (!$scope.$$phase) {
+                $scope.$apply();
+            }
+        };
+
+        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+            setTimeout(function () {
+                var data;
+
+                CommandGroups.all(pageSize, page).then(
+                    getAllCGSuccess, getAllCGError
+                );
+                function getAllCGSuccess(data, status, headers, config){
+                    $scope.setPagingData(data.data, page, pageSize);
+                }
+                function getAllCGError(data, status, headers, config){
+                    Snackbar.error('Can not get Command Groups data.',
+                                   {errors:data.data});
+                }
+            }, 100);
+        };
+
+        $scope.$watch('pagingOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
+                $scope.getPagedDataAsync(
+                    $scope.pagingOptions.pageSize,
+                    $scope.pagingOptions.currentPage,
+                    'test');
+            }
+        }, true);
+
+        function getCommandGroups(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage
+            );
+        }
+        getCommandGroups();
+
         $scope.gridOptions = {
             data: 'commandgroups_data',
             rowHeight: 35,
@@ -92,15 +127,7 @@
                 }
             ],
             plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions:{
-                pageSizes: [5, 20, 50],
-                pageSize: 5,
-                currentPage: 1
-            }
+            pagingOptions: $scope.pagingOptions
         };
-
-
-
     }
-
 })();

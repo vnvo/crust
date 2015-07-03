@@ -12,13 +12,12 @@
     function RemoteUsersController($scope, RemoteUsers, Snackbar, ngDialog){
         var vm = this;
 
-        getRemoteUsers();
-
+        //getRemoteUsers();
         $scope.deleteRemoteUser = deleteRemoteUser;
         $scope.startRUUpdateDialog = startRUUpdateDialog;
         $scope.toggleRUIsLocked = toggleRUIsLocked;
 
-        function getRemoteUsers(){
+        /*function getRemoteUsers(){
             RemoteUsers.all().then(
                 getAllRuSuccess, getAllRuError
             );
@@ -28,7 +27,7 @@
             function getAllRuError(data, status, headers, config){
                 Snackbar.error('Can not get Remote Users');
             }
-        }
+        }*/
 
         function deleteRemoteUser(event, grid_row){
             event.stopPropagation();
@@ -91,6 +90,56 @@
         );
 
         // Init/config ngGrid instance
+        $scope.totalServerItems = 0;
+        $scope.pagingOptions = {
+            pageSizes: [5, 10, 20, 50],
+            pageSize: 10,
+            currentPage: 1
+        };
+
+        $scope.setPagingData = function(data, page, pageSize){
+            var pagedData = data.results;
+            $scope.remoteusers_data = pagedData;
+            $scope.totalServerItems = data.count;
+            if (!$scope.$$phase) {
+                $scope.$apply();
+            }
+        };
+
+        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+            setTimeout(function () {
+                var data;
+
+                RemoteUsers.all(pageSize, page).then(
+                    getAllRuSuccess, getAllRuError
+                );
+                function getAllRuSuccess(data, status, headers, config){
+                    $scope.setPagingData(data.data, page, pageSize);
+                }
+                function getAllRuError(data, status, headers, config){
+                    Snackbar.error('Can not get Remote Users data.',
+                                   {errors:data.data});
+                }
+            }, 100);
+        };
+
+        $scope.$watch('pagingOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
+                $scope.getPagedDataAsync(
+                    $scope.pagingOptions.pageSize,
+                    $scope.pagingOptions.currentPage,
+                    'test');
+            }
+        }, true);
+
+        function getRemoteUsers(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage
+            );
+        }
+        getRemoteUsers();
+
         $scope.gridOptions = {
             data: 'remoteusers_data',
             rowHeight: 35,
@@ -117,11 +166,7 @@
                 }
             ],
             plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions:{
-                pageSizes: [5, 20, 50],
-                pageSize: 5,
-                currentPage: 1
-            }
+            pagingOptions: $scope.pagingOptions
         };
     }
 })();

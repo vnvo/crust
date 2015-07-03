@@ -15,7 +15,7 @@
     function ServerAccountsController($scope, ServerAccounts, Snackbar, ngDialog){
         var vm = this;
 
-        getServerAccounts();
+        //getServerAccounts();
         $scope.deleteServerAccount = deleteServerAccount;
         $scope.startSAUpdateDialog = startSAUpdateDialog;
         $scope.toggleIsLocked = toggleIsLocked;
@@ -72,18 +72,6 @@
             event.stopPropagation();
         }
 
-        function getServerAccounts(){
-            ServerAccounts.all().then(
-                getAllSASuccess, getAllSAError
-            );
-            function getAllSASuccess(data, status, headers, config){
-                $scope.serveraccounts_data = data.data;
-            }
-            function getAllSAError(data, status, headers, config){
-                Snackbar.error('Can not get Server Accounts.');
-            }
-        }
-
         // listen for creation/update events
         $scope.$on(
             'serveraccount.created',
@@ -95,6 +83,57 @@
         );
 
         // Init/config ngGrid instance
+        $scope.totalServerItems = 0;
+        $scope.pagingOptions = {
+            pageSizes: [5, 10, 20, 50],
+            pageSize: 10,
+            currentPage: 1
+        };
+
+        $scope.setPagingData = function(data, page, pageSize){
+            var pagedData = data.results;//.slice((page - 1) * pageSize, page * pageSize);
+            $scope.serveraccounts_data = pagedData;
+            $scope.totalServerItems = data.count;
+            if (!$scope.$$phase) {
+                $scope.$apply();
+            }
+        };
+
+        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+            setTimeout(function () {
+                var data;
+
+                ServerAccounts.all(pageSize, page).then(
+                    getAllSASuccess, getAllSAError
+                );
+                function getAllSASuccess(data, status, headers, config){
+                    $scope.setPagingData(data.data, page, pageSize);
+                }
+                function getAllSAError(data, status, headers, config){
+                    Snackbar.error('Can not get Server Accounts data..',
+                                   {errors:data.data});
+                }
+            }, 100);
+        };
+
+        $scope.$watch('pagingOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
+                $scope.getPagedDataAsync(
+                    $scope.pagingOptions.pageSize,
+                    $scope.pagingOptions.currentPage,
+                    'test');
+            }
+        }, true);
+
+        function getServerAccounts(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage
+            );
+        }
+
+        getServerAccounts();
+
         $scope.gridOptions = {
             data: 'serveraccounts_data',
             rowHeight: 35,
@@ -121,12 +160,7 @@
                 }
             ],
             plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions:{
-                pageSizes: [5, 20, 50],
-                pageSize: 5,
-                currentPage: 1
-            }
+            pagingOptions: $scope.pagingOptions
         };
-
     }
 })();

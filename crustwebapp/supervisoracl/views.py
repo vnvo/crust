@@ -15,9 +15,9 @@ class SupervisorACLViewSet(viewsets.ModelViewSet):
     queryset = SupervisorACL.objects.all()
     serializer_class = SupervisorACLSerializer
 
-    def get_permission(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated, )
+    def get_permissions(self):
+        #if self.request.method in permissions.SAFE_METHODS:
+        #    return (permissions.IsAuthenticated, )
         return (permissions.IsAuthenticated(), IsAdmin())
 
     def create(self, request):
@@ -95,6 +95,9 @@ class SupervisorACLViewSet(viewsets.ModelViewSet):
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SupervisorACLCountView(views.APIView):
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdmin())
+
     def get(self, request):
         remoteuser_acl_count = SupervisorACL.objects.count()
         return Response({'supervisor_acl_count':remoteuser_acl_count})

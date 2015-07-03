@@ -16,10 +16,9 @@ class RemoteUserACLViewSet(viewsets.ModelViewSet):
     serializer_class = RemoteUserACLSerializer
     #pagination_class = PageNumberPagination
 
-    def get_permission(self):
-        print self.pagination_class
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated, )
+    def get_permissions(self):
+        #if self.request.method in permissions.SAFE_METHODS:
+        #    return (permissions.IsAuthenticated, )
         return (permissions.IsAuthenticated(), IsAdmin())
 
     def create(self, request):
@@ -97,6 +96,9 @@ class RemoteUserACLViewSet(viewsets.ModelViewSet):
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RemoteUserACLCountView(views.APIView):
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdmin())
+
     def get(self, request):
         remoteuser_acl_count = RemoteUserACL.objects.count()
         return Response({'remoteuser_acl_count':remoteuser_acl_count})

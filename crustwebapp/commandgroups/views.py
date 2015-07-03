@@ -22,8 +22,8 @@ class CommandGroupsViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated(),)
+        #if self.request.method in permissions.SAFE_METHODS:
+        #    return (permissions.IsAuthenticated(),)
 
         return (permissions.IsAuthenticated(), IsAdmin())
 
@@ -32,10 +32,10 @@ class CommandPatternsViewSet(viewsets.ModelViewSet):
     queryset = CommandPattern.objects.all()
     serializer_class = CommandPatternSerializer
 
-    def get_permission(self):
+    def get_permissions(self):
         # @todo: must check the requesters assign server-groups
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated, )
+        #if self.request.method in permissions.SAFE_METHODS:
+        #    return (permissions.IsAuthenticated(), )
         return (permissions.IsAuthenticated(), IsAdmin())
 
     def create(self, request):
@@ -62,11 +62,18 @@ class CommandPatternsViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CommandGroupsCountView(views.APIView):
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdmin())
+
     def get(self, request):
         commandgroup_count = CommandGroup.objects.count()
         return Response({'commandgroup_count':commandgroup_count})
 
 class CommandPatternsCountView(views.APIView):
+
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdmin())
+
     def get(self, request):
         commandpattern_count = CommandPattern.objects.count()
         return Response({'commandpattern_count':commandpattern_count})

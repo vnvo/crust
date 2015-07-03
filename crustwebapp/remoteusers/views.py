@@ -20,12 +20,15 @@ class RemoteUsersViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated(),)
+        #if self.request.method in permissions.SAFE_METHODS:
+        #    return (permissions.IsAuthenticated(),)
 
         return (permissions.IsAuthenticated(), IsAdmin())
 
 class RemoteUsersCountView(views.APIView):
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdmin())
+
     def get(self, request):
         remoteuser_count = RemoteUser.objects.count()
         return Response({'remoteuser_count': remoteuser_count})

@@ -24,12 +24,15 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated(),)
-
+        #if self.request.method in permissions.SAFE_METHODS:
+        #    return (permissions.IsAuthenticated())
         return (permissions.IsAuthenticated(), IsAdmin())
 
 class ServerGroupsCountView(views.APIView):
+
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdmin())
+
     def get(self, request):
         servergroup_count = ServerGroup.objects.count()
         return Response({'servergroup_count':servergroup_count})
@@ -48,10 +51,10 @@ class ServersViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    def get_permission(self):
+    def get_permissions(self):
         # @todo: must check the requesters assign server-groups
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated, )
+        #if self.request.method in permissions.SAFE_METHODS:
+        #    return (permissions.IsAuthenticated(), IsAdmin() )
         return (permissions.IsAuthenticated(), IsAdmin())
 
     def create(self, request):
@@ -78,6 +81,10 @@ class ServersViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ServersCountView(views.APIView):
+
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdmin())
+
     def get(self, request):
         servers_count = Server.objects.count()
         return Response({'server_count':servers_count})
@@ -100,10 +107,10 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    def get_permission(self):
+    def get_permissions(self):
         # @todo: must check the requesters assign server-groups
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated, )
+        #if self.request.method in permissions.SAFE_METHODS:
+        #    return (permissions.IsAuthenticated(), )
         return (permissions.IsAuthenticated(), IsAdmin())
 
     def create(self, request):
@@ -134,6 +141,10 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ServerAccountsCountView(views.APIView):
+
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdmin())
+
     def get(self, request):
         serveraccounts_count = ServerAccount.objects.count()
         return Response({'serveraccount_count':serveraccounts_count})

@@ -19,18 +19,17 @@
 
 <body>
 
+
     <div id="wrapper">
         {% if user.is_authenticated %}
         {% include 'navbar.html' %}
         <div id="page-wrapper">
             <div class="col-xs-12 ng-view">Main ...</div>
         </div>
-        <!-- /#page-wrapper -->
         {% else %}
-        <div ng-view>Login ...</div>
-        {% endif %}
+        <div ng-view> Login ... </div>
+        {% endif  %}
     </div>
-    <!-- /#wrapper -->
 
     {% include 'javascripts.html' %}
 

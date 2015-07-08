@@ -9,13 +9,13 @@
         .module('crust.authentication.services')
         .factory('Authentication', Authentication);
 
-    Authentication.$inject = ['$cookies', '$http', '$filter'];
+    Authentication.$inject = ['$cookies', '$http', '$filter', 'Snackbar'];
 
     /**
      * @namespace Authentication
      * @returns {Factory}
      */
-    function Authentication($cookies, $http, $filter){
+    function Authentication($cookies, $http, $filter, Snackbar){
         /**
          * @name Authentication
          * @desc The Factory for Authentication mechanism to be returned
@@ -65,7 +65,9 @@
              * @desc show error message on failed login
              */
             function loginErrorFn(data, status, header, config){
+                Snackbar.error('Login Error, ', {errors:data.data});
                 console.log('Login, Internal Error'); // @todo: alert user
+                console.log(data);
             }
         }
 
@@ -94,6 +96,7 @@
              * @desc log something to console for now
              */
             function logoutErrorFn(data, status, header, config){
+                Snackbar.error('Logout Error, ', {errors: data});
                 console.log('Logout, Internal Error');
             }
         }
@@ -131,6 +134,7 @@
          * @memberOf crust.authentication.services.Authentication
          */
         function isAuthenticated(){
+            console.log($cookies.accountLoginTime);
             return !!$cookies.authenticatedAccount;
         }
 

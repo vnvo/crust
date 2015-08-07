@@ -135,7 +135,10 @@
          */
         function isAuthenticated(){
             console.log($cookies.accountLoginTime);
-            return !!$cookies.authenticatedAccount;
+            var now = (new Date).getTime();
+            console.log(now-$cookies.accountLoginTime);
+            return !!$cookies.authenticatedAccount ||
+                now-$cookies.accountLoginTime < 600;
         }
 
         /**
@@ -147,8 +150,9 @@
          */
         function setAuthenticatedAccount(account){
             $cookies.authenticatedAccount = JSON.stringify(account);
-            $cookies.accountLoginTime = $filter('date')(new Date(),
-                                                        'yyyy-MM-dd H:mm:ss');
+            $cookies.accountLoginTime = (new Date).getTime();
+            //$filter('date')(new Date(),'yyyy-MM-dd H:mm:ss');
+            console.log('login='+$cookies.accountLoginTime);
         }
 
         /**

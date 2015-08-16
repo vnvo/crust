@@ -42,6 +42,8 @@ router.register(r'supervisoracls', SupervisorACLViewSet)
 urlpatterns = patterns(
     '',
 
+    url(r'^admin/', include(admin.site.urls)),
+
     ### Dashboard General Stats
     url(r'^api/v1/servergroups/count/$',
         ServerGroupsCountView.as_view(),
@@ -84,5 +86,5 @@ urlpatterns = patterns(
     url(r'^api/v1/auth/logout/$', LogoutView.as_view(), name='logout'),
 
     url('^.*$', IndexView.as_view(), name='index'),
-    url(r'^admin/', include(admin.site.urls)),
+    #url(r'^admin/', include(admin.site.urls)),
 )

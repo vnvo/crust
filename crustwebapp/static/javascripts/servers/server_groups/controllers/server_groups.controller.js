@@ -69,8 +69,7 @@
         $scope.pagingOptions = {
             pageSizes: [5, 10, 20, 50],
             pageSize: 10,
-            currentPage: 1,
-            totalServerItems: 7
+            currentPage: 1
         };
 
         $scope.filterText = null;

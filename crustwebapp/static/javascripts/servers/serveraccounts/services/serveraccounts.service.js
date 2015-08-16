@@ -19,9 +19,10 @@
         };
         return ServerAccounts;
 
-        function getAllServerAccounts(page_size, page){
+        function getAllServerAccounts(page_size, page, filterText, ordering){
             return $http.get('/api/v1/serveraccounts/',{
-                params: {page_size:page_size, page:page}
+                params: {page_size:page_size, page:page,
+                         search_filter: filterText, ordering: ordering}
             });
         }
 

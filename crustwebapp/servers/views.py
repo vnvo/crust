@@ -6,7 +6,9 @@ from servers.models import ServerGroup, Server, ServerAccount
 from servers.serializers import ServerGroupSerializer, ServerSerializer
 from servers.serializers import ServerAccountSerializer
 
-from authentication.permissions import IsAdmin
+from servers.permissions import IsAdminOrGroupOwner
+from servers.permissions import IsAdminOrServerOwner
+from servers.permissions import IsAdminOrServerAccountOwner
 from authentication.models import Supervisor
 
 ################# ServerGroups
@@ -50,7 +52,7 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         #if self.request.method in permissions.SAFE_METHODS:
         #    return (permissions.IsAuthenticated())
-        return (permissions.IsAuthenticated(), IsAdmin())
+        return (permissions.IsAuthenticated(), IsAdminOrGroupOwner())
 
     def create(self, request):
         data = request.data
@@ -85,7 +87,7 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
 class ServerGroupsCountView(views.APIView):
 
     def get_permissions(self):
-        return (permissions.IsAuthenticated(), IsAdmin())
+        return (permissions.IsAuthenticated(), IsAdminOrGroupOwner())
 
     def get(self, request):
         if request.user.is_admin:
@@ -137,7 +139,7 @@ class ServersViewSet(viewsets.ModelViewSet):
         # @todo: must check the requesters assign server-groups
         #if self.request.method in permissions.SAFE_METHODS:
         #    return (permissions.IsAuthenticated(), IsAdmin() )
-        return (permissions.IsAuthenticated(), IsAdmin())
+        return (permissions.IsAuthenticated(), IsAdminOrServerOwner())
 
     def create(self, request):
         data = request.data
@@ -165,7 +167,7 @@ class ServersViewSet(viewsets.ModelViewSet):
 class ServersCountView(views.APIView):
 
     def get_permissions(self):
-        return (permissions.IsAuthenticated(), IsAdmin())
+        return (permissions.IsAuthenticated(), IsAdminOrServerOwner())
 
     def get(self, request):
         if request.user.is_admin:
@@ -183,27 +185,44 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
     serializer_class = ServerAccountSerializer
 
     def get_queryset(self):
+        queryset = ServerAccount.objects
+
         if self.request.user.is_admin:
-            queryset = ServerAccount.objects.all()
+            queryset = queryset.all().order_by('username')
         else:
-            queryset = ServerAccount.objects.filter(
-                server__server_group__supervisor=self.request.user)
+            queryset = queryset.filter(
+                server__server_group__supervisor=self.request.user
+            ).order_by('username')
 
         hint = self.request.query_params.get('hint', None)
-        if hint: #username@server_name
+        search_filter = self.request.query_params.get('search_filter', None)
+        if hint:
             hint = hint.split('@')
-            if hint[0]: #username
+            if hint[0]:
                 queryset = queryset.filter(username__icontains=hint[0])
-            if len(hint)> 1 and hint[1]:
+            if len(hint)>1 and hint[1]:
                 queryset = queryset.filter(server__server_name__icontains=hint[1])
+
+        if search_filter:
+            queryset = queryset.filter(
+                Q(server__server_name__icontains=search_filter)|
+                Q(username__icontains=search_filter)|
+                Q(comment__icontains=search_filter)|
+                Q(protocol__icontains=search_filter)
+            )
+
+        for key,val in self.request.query_params.iteritems():
+            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+                continue
+            queryset = queryset.filter(**{key:val})
+
+        ordering = self.request.query_params.get('ordering', '-id')
+        queryset = queryset.order_by(ordering)
 
         return queryset
 
     def get_permissions(self):
-        # @todo: must check the requesters assign server-groups
-        #if self.request.method in permissions.SAFE_METHODS:
-        #    return (permissions.IsAuthenticated(), )
-        return (permissions.IsAuthenticated(), IsAdmin())
+        return (permissions.IsAuthenticated(), IsAdminOrServerAccountOwner())
 
     def create(self, request):
         data = request.data
@@ -235,7 +254,7 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
 class ServerAccountsCountView(views.APIView):
 
     def get_permissions(self):
-        return (permissions.IsAuthenticated(), IsAdmin())
+        return (permissions.IsAuthenticated(), IsAdminOrServerAccountOwner())
 
     def get(self, request):
         serveraccounts_count = ServerAccount.objects.count()

@@ -129,7 +129,6 @@
                 //console.log($scope.sortOptions.directions);
                 $scope.ordering = $scope.sortOptions.directions[0] === 'desc'? '-':'';
                 $scope.ordering = $scope.ordering + $scope.sortOptions.fields[0].toLowerCase().replace('.', '__');
-
                 getServerGroups();
             }
         }, true);

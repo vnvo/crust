@@ -30,7 +30,7 @@
                     templateUrl: '/static/templates/supervisors.html'}
             ).when(
                 '/servergroups',{
-                    contoller: 'ServerGroupsController',
+                    controller: 'ServerGroupsController',
                     controllerAs: 'vm',
                     templateUrl: 'static/templates/servers/server_groups/servergroups.html'
                 }

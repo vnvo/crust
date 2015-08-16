@@ -1,3 +1,4 @@
+<br/>
 <button
   class="btn btn-success btn-lg"
   title="Add New Server Group" data-placement="bottom"
@@ -6,8 +7,7 @@
   ng-dialog="/static/templates/servers/server_groups/new_servergroup.templ.html"
   ng-dialog-controller="NewServerGroupController as vm">
     <i class="fa fa-plus"></i>
+    Add New Server Group
 </button>
-
-<servergroups
-    servergroups="vm.servergroups">
-</servergroups>
+<br><br>
+<div class="gridStyle" ng-grid="gridOptions"></div>

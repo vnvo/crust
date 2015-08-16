@@ -33,9 +33,11 @@
          * @returns {Promise}
          * @memberOf crust.servers.server_groups.services.ServerGroups
          */
-        function allServerGroups(pageSize, page){
+        function allServerGroups(pageSize, page, searchFilter, ordering){
             return $http.get('/api/v1/servergroups/', {
-                params: {page_size: pageSize, page:page}
+                params: {page_size: pageSize, page:page,
+                         search_filter: searchFilter,
+                         ordering:ordering}
             });
         }
 
@@ -68,11 +70,12 @@
          * @returns {Promise}
          * @memberOf crust.servers.server_groups.services.ServerGroups
          */
-        function createServerGroup(group_name){
+        function createServerGroup(group_name, supervisor){
             return $http.post(
                 '/api/v1/servergroups/',
                 {
-                    group_name: group_name
+                    group_name: group_name,
+                    supervisor: supervisor
                 });
         }
 
@@ -94,9 +97,9 @@
          * @returns {Promise}
          * memberOf crust.servers.server_groups.services.ServerGroups
          */
-        function updateServerGroup(server_group_id, server_group_name){
+        function updateServerGroup(server_group_id, server_group_name, supervisor){
             return $http.put('/api/v1/servergroups/'+server_group_id+'/', {
-                group_name: server_group_name
+                group_name: server_group_name, supervisor: supervisor
             });
         }
 

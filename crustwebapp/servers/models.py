@@ -1,17 +1,27 @@
 from django.db import models
-
+from authentication.models import Supervisor
 
 class ServerGroup(models.Model):
     '''
     @name ServerGroup
     @desc To group Servers together for better management
     '''
+    supervisor = models.ForeignKey(Supervisor, null=True)
     group_name = models.CharField(max_length=256, unique=True)
     comment = models.TextField(blank=True)
 
     @property
     def get_server_count(self):
         return self.server_set.count()
+
+    @property
+    def serveraccounts_count(self):
+        sa_count = 0
+        for s in self.server_set.all():
+            sa_count += s.serveraccount_set.count()
+
+        return sa_count
+
 
 class Server(models.Model):
     '''

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from authentication.serializers import SupervisorSerializer
 from servers.models import ServerGroup
 from servers.models import Server
 from servers.models import ServerAccount
@@ -9,10 +9,17 @@ class ServerGroupSerializer(serializers.ModelSerializer):
         source='get_server_count',
         required=False, read_only=True)
 
+    serveraccount_count = serializers.IntegerField(
+        source='serveraccounts_count',
+        required=False, read_only=True)
+
+    supervisor = SupervisorSerializer(read_only=True, required=False)
+
     class Meta:
         model = ServerGroup
-        fields = ('id', 'group_name', 'server_count')
-        read_only_fields = ('id', 'server_count')
+        fields = ('id', 'group_name', 'server_count',
+                  'supervisor', 'serveraccount_count')
+        read_only_fields = ('id', 'server_count', 'supervisor')
 
 class ServerSerializer(serializers.ModelSerializer):
     server_group = ServerGroupSerializer(read_only=True, required=False)

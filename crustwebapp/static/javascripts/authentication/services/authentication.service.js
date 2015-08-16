@@ -25,6 +25,7 @@
             login: login,
             logout: logout,
             getAuthenticatedAccount: getAuthenticatedAccount,
+            isAdmin: isAdmin,
             getLoginTime: getLoginTime,
             isAuthenticated: isAuthenticated,
             setAuthenticatedAccount: setAuthenticatedAccount,
@@ -112,6 +113,11 @@
                 return undefined;
 
             return JSON.parse($cookies.authenticatedAccount);
+        }
+
+
+        function isAdmin(){
+            return Authentication.getAuthenticatedAccount().is_admin;
         }
 
         /**

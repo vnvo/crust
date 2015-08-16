@@ -1,4 +1,4 @@
-<form role="form" ng-submit="vm.submit()">
+<form role="form" ng-submit="vm.update()">
     <div class="form-group">
         <label class="control-label col-xs-5" for="servergroup__group_name">Server Group Name</label>
         <div class="col-xs-7">
@@ -13,7 +13,7 @@
             <input type="text" class="form-control" id="supervisoracl__supervisor"
                    autocomplete="off" data-ng-model="vm.selected_supervisor"
                    typeahead="item as item.username for item in vm.getSupervisorsSuggestion($viewValue) | filter:$viewValue"
-                   typeahead-wait-ms=1000
+                   typeahead-wait-ms=500
                    typeahead-loading="loadingSupervisors"
                    />
             <i ng-show="loadingSupervisors" class="fa fa-spinner fa-spin"></i>
@@ -21,8 +21,8 @@
     </div>
 
     <div class="form-group">
-        <button type="submit" class="btn btn-success">
-            Submit
+        <button type="submit" class="btn btn-primary">
+            Update
         </button>
     </div>
 </form>

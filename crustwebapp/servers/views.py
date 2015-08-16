@@ -1,13 +1,13 @@
 from rest_framework import permissions, viewsets
 from rest_framework import views, status, generics
 from rest_framework.response import Response
-
+from django.db.models import Q, Count
 from servers.models import ServerGroup, Server, ServerAccount
 from servers.serializers import ServerGroupSerializer, ServerSerializer
 from servers.serializers import ServerAccountSerializer
 
 from authentication.permissions import IsAdmin
-
+from authentication.models import Supervisor
 
 ################# ServerGroups
 class ServerGroupsViewSet(viewsets.ModelViewSet):
@@ -16,10 +16,34 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
     #permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
     def get_queryset(self):
-        queryset = ServerGroup.objects.all()
+        queryset = ServerGroup.objects.annotate(server_count=Count('server'))
+        queryset = queryset.annotate(serveraccount_count=Count('server__serveraccount'))
+
+        if self.request.user.is_admin:
+            queryset = queryset.all().order_by('group_name')
+        else:
+            queryset = ServerGroup.objects.filter(
+                supervisor=self.request.user
+            ).order_by('group_name')
+
         hint = self.request.query_params.get('hint', None)
+        search_filter = self.request.query_params.get('search_filter', None)
         if hint:
             queryset = queryset.filter(group_name__icontains=hint)
+        if search_filter:
+            queryset = queryset.filter(
+                Q(group_name__icontains=search_filter)|
+                Q(supervisor__username__icontains=search_filter)
+            )
+
+        for key,val in self.request.query_params.iteritems():
+            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+                continue
+
+            queryset = queryset.filter(**{key:val})
+
+        ordering = self.request.query_params.get('ordering', '-id')
+        queryset = queryset.order_by(ordering)
 
         return queryset
 
@@ -28,13 +52,47 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
         #    return (permissions.IsAuthenticated())
         return (permissions.IsAuthenticated(), IsAdmin())
 
+    def create(self, request):
+        data = request.data
+        if request.user.is_admin and data.has_key('supervisor'):
+            supervisor = Supervisor.objects.get(id=int(data['supervisor']['id']))
+        else:
+            supervisor = self.request.user
+
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save(supervisor=supervisor)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk):
+        servergroup_obj = ServerGroup.objects.get(id=pk)
+        data = request.data
+        if request.user.is_admin and data.has_key('supervisor'):
+            supervisor = Supervisor.objects.get(id=int(data['supervisor']['id']))
+        else:
+            supervisor = self.request.user
+
+        serializer = self.serializer_class(servergroup_obj, data=data)
+        if serializer.is_valid():
+            serializer.save(supervisor=supervisor)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class ServerGroupsCountView(views.APIView):
 
     def get_permissions(self):
         return (permissions.IsAuthenticated(), IsAdmin())
 
     def get(self, request):
-        servergroup_count = ServerGroup.objects.count()
+        if request.user.is_admin:
+            servergroup_count = ServerGroup.objects.count()
+        else:
+            servergroup_count = ServerGroup.objects.filter(supervisor=request.user).count()
+
         return Response({'servergroup_count':servergroup_count})
 
 
@@ -44,7 +102,11 @@ class ServersViewSet(viewsets.ModelViewSet):
     serializer_class = ServerSerializer
 
     def get_queryset(self):
-        queryset = Server.objects.all()
+        if self.request.user.is_admin:
+            queryset = Server.objects.all()
+        else:
+             queryset = Server.objects.filter(servergroup__supervisor=self.user)
+
         hint = self.request.query_params.get('hint', None)
         if hint:
             queryset = queryset.filter(server_name__icontains=hint)
@@ -86,7 +148,12 @@ class ServersCountView(views.APIView):
         return (permissions.IsAuthenticated(), IsAdmin())
 
     def get(self, request):
-        servers_count = Server.objects.count()
+        if request.user.is_admin:
+            servers_count = Server.objects.count()
+        else:
+            servers_count = Server.objects.filter(
+                servergroup__supervisor=request.user).count()
+
         return Response({'server_count':servers_count})
 
 
@@ -96,7 +163,12 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
     serializer_class = ServerAccountSerializer
 
     def get_queryset(self):
-        queryset = ServerAccount.objects.all()
+        if self.request.user.is_admin:
+            queryset = ServerAccount.objects.all()
+        else:
+            queryset = ServerAccount.objects.filter(
+                server__server_group__supervisor=self.request.user)
+
         hint = self.request.query_params.get('hint', None)
         if hint: #username@server_name
             hint = hint.split('@')

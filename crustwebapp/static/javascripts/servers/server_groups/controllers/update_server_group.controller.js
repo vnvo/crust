@@ -3,24 +3,35 @@
 
     angular
         .module('crust.servers.server_groups.controllers')
-        .controller('NewServerGroupController', NewServerGroupController);
+        .controller('UpdateServerGroupController', UpdateServerGroupController);
 
-    NewServerGroupController.$inject = [
+    UpdateServerGroupController.$inject = [
         '$scope', 'ServerGroups', 'Snackbar',
         'Supervisors', 'Authentication', '$rootScope'
     ];
 
-    function NewServerGroupController($scope, ServerGroups, Snackbar, Supervisors, Authentication, $rootScope){
+    function UpdateServerGroupController($scope, ServerGroups, Snackbar, Supervisors, Authentication, $rootScope){
         var vm = this;
 
-        vm.submit = submit;
+        vm.update = update;
         vm.getSupervisorsSuggestion = getSupervisorsSuggestion;
+
+        ServerGroups.get($scope.update_sg_id).then(
+            function(data, status, headers, config){
+                var sg_data = data.data;
+                vm.selected_supervisor = sg_data.supervisor;
+                vm.group_name = sg_data.group_name;
+            },
+            function(data, status, headers, config){
+                Snackbar.error('Could not get Server Group Data');
+            }
+        );
 
         if(Authentication.isAdmin()){
             Supervisors.all().then(
                 function(data, status, headers, config){
                     $scope.supervisors = data.data.results;
-                    vm.selected_supervisor = null;
+                    //vm.selected_supervisor = null;
                 },
                 function(data, status, headers, config){
                     $scope.supervisors = null;
@@ -28,7 +39,6 @@
                 }
             );
         }
-
 
         function getSupervisorsSuggestion($viewValue){
             return Supervisors.getSuggestion($viewValue).then(
@@ -47,18 +57,20 @@
          * @desc Create a new ServerGroups
          * @memberOf crust.servers.server_groups.controllers.NewServerGroupsController
          */
-        function submit(){
-            ServerGroups.create(
-                vm.group_name, vm.selected_supervisor
-            ).then(createSuccessFn, createErrorFn);
+        function update(){
+            ServerGroups.update(
+                $scope.update_sg_id,
+                vm.group_name,
+                vm.selected_supervisor
+            ).then(updateSGSuccessFn, updateSGErrorFn);
 
-            function createSuccessFn(data, status, header, config){
-                $rootScope.$broadcast('servergroup.created');
+            function updateSGSuccessFn(data, status, header, config){
+                $rootScope.$broadcast('servergroup.updated');
                 $scope.closeThisDialog();
-                Snackbar.show('Server Group Created Successfuly');
+                Snackbar.show('Server Group Updated Successfuly');
             }
-            function createErrorFn(data, status, header, config){
-                Snackbar.error('Create Server Group Error', {errors:data.data});
+            function updateSGErrorFn(data, status, header, config){
+                Snackbar.error('Update Server Group Error', {errors:data.data});
             }
         }
     }

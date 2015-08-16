@@ -125,8 +125,8 @@
 
         $scope.$watch('sortOptions', function (newVal, oldVal) {
             if (newVal !== oldVal) {
-                console.log($scope.sortOptions.fields);
-                console.log($scope.sortOptions.directions);
+                //console.log($scope.sortOptions.fields);
+                //console.log($scope.sortOptions.directions);
                 $scope.ordering = $scope.sortOptions.directions[0] === 'desc'? '-':'';
                 $scope.ordering = $scope.ordering + $scope.sortOptions.fields[0].toLowerCase().replace('.', '__');
 

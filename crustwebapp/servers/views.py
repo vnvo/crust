@@ -102,14 +102,34 @@ class ServersViewSet(viewsets.ModelViewSet):
     serializer_class = ServerSerializer
 
     def get_queryset(self):
+        queryset = Server.objects.annotate(serveraccount_count=Count('serveraccount'))
+
         if self.request.user.is_admin:
-            queryset = Server.objects.all()
+            queryset = queryset.all().order_by('server_name')
         else:
-             queryset = Server.objects.filter(servergroup__supervisor=self.user)
+            queryset = ServerGroup.objects.filter(
+                server_group__supervisor=self.request.user
+            ).order_by('server_name')
 
         hint = self.request.query_params.get('hint', None)
+        search_filter = self.request.query_params.get('search_filter', None)
         if hint:
             queryset = queryset.filter(server_name__icontains=hint)
+        if search_filter:
+            queryset = queryset.filter(
+                Q(server_group__group_name__icontains=search_filter)|
+                Q(server_name__icontains=search_filter)|
+                Q(server_ip__icontains=search_filter)|
+                Q(comment__icontains=search_filter)
+            )
+
+        for key,val in self.request.query_params.iteritems():
+            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+                continue
+            queryset = queryset.filter(**{key:val})
+
+        ordering = self.request.query_params.get('ordering', '-id')
+        queryset = queryset.order_by(ordering)
 
         return queryset
 

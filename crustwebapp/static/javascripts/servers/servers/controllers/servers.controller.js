@@ -16,9 +16,6 @@
     function ServersController($scope, Servers, Snackbar, ngDialog){
         var vm = this;
 
-        //vm.getServers = getServers;
-        //getServers();
-
         $scope.deleteServer = deleteServer;
         $scope.startUpdateDialog = startUpdateDialog;
 
@@ -51,15 +48,6 @@
             }
         }
 
-        /*function getServers(){
-            Servers.all().then(getAllSuccess, getAllError);
-            function getAllSuccess(data, status, headers, config){
-                $scope.servers_data = data.data;
-            }
-            function getAllError(data, status, headers, config){
-                Snackbar.error('Can not get Servers');
-            }
-        }*/
 
         // listen for creation/update events
         $scope.$on(
@@ -79,8 +67,19 @@
             currentPage: 1
         };
 
+        $scope.filterText = null;
+        $scope.filterOptions = {
+            filterText: $scope.filterText,
+            useExternalFilter: true
+        };
+
+        $scope.sortOptions = {
+            fields: ['id'],
+            directions: ['desc']
+        };
+
         $scope.setPagingData = function(data, page, pageSize){
-            var pagedData = data.results;//.slice((page - 1) * pageSize, page * pageSize);
+            var pagedData = data.results;
             $scope.servers_data = pagedData;
             $scope.totalServerItems = data.count;
             if (!$scope.$$phase) {
@@ -88,11 +87,11 @@
             }
         };
 
-        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+        $scope.getPagedDataAsync = function (pageSize, page, searchText, ordering) {
             setTimeout(function () {
                 var data;
 
-                Servers.all(pageSize, page).then(
+                Servers.all(pageSize, page, searchText, ordering).then(
                     getAllServersSuccess, getAllServersError
                 );
                 function getAllServersSuccess(data, status, headers, config){
@@ -106,21 +105,31 @@
         };
 
         $scope.$watch('pagingOptions', function (newVal, oldVal) {
-            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
-                $scope.getPagedDataAsync(
-                    $scope.pagingOptions.pageSize,
-                    $scope.pagingOptions.currentPage,
-                    'test');
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage
+                                      || newVal.pageSize !== oldVal.pageSize)) {
+                getServers();
             }
         }, true);
 
-        function getServers(){
-            $scope.getPagedDataAsync(
-                $scope.pagingOptions.pageSize,
-                $scope.pagingOptions.currentPage
-            );
-        }
-        getServers();
+        $scope.$watch('gridOptions.$gridScope.filterText', function (newVal, oldVal) {
+            if (newVal !== oldVal) {
+                getServers();
+            }
+        }, true);
+
+
+        $scope.$watch('sortOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal) {
+                console.log($scope.sortOptions.fields);
+                console.log($scope.sortOptions.directions);
+                $scope.ordering = $scope.sortOptions.directions[0] === 'desc'? '-':'';
+                $scope.ordering = $scope.ordering + $scope.sortOptions.fields[0].toLowerCase().replace('.', '__');
+
+                getServers();
+            }
+        }, true);
+
+
         $scope.gridOptions = {
             data: 'servers_data',
             rowHeight: 35,
@@ -129,6 +138,10 @@
             showFooter: true,
             showGroupPanel: true,
             showFilter: true,
+            multiSelect: false,
+            useExternalSorting: true,
+            sortInfo: $scope.sortOptions,
+            totalServerItems: "totalServerItems",
             columnDefs: [
                 {displayName:'#', width: 30,
                  cellTemplate: '<div class="ngCellText" data-ng-class="col.colIndex()"><span>{{row.rowIndex + 1}}</span></div>'
@@ -146,9 +159,19 @@
                  cellTemplate: '/static/templates/servers/servers/grid_cell.actions.templ.html'
                 }
             ],
-            plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions: $scope.pagingOptions
+            pagingOptions: $scope.pagingOptions,
+            filterOptions: $scope.filterOptions
         };
+
+        function getServers(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage,
+                $scope.gridOptions.$gridScope.filterText,
+                $scope.ordering
+            );
+        }
+
     }
 
 })();

@@ -24,9 +24,10 @@
 
         return Servers;
 
-        function getAllServers(pageSize, page){
+        function getAllServers(pageSize, page, searchFilter, ordering){
             return $http.get('/api/v1/servers/',{
-                params: {page_size:pageSize, page:page}
+                params: {page_size:pageSize, page:page,
+                         search_filter: searchFilter, ordering: ordering}
             });
         }
 

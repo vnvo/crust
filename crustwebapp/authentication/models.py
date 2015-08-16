@@ -32,6 +32,7 @@ class Supervisor(AbstractBaseUser):
 
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -49,3 +50,12 @@ class Supervisor(AbstractBaseUser):
 
     def get_short_name(self):
         return self.first_name
+
+    def has_module_perms(self, app_label):
+        return self.is_admin
+
+    def has_perm(self, perm, obj=None):
+        return self.is_admin
+
+    def is_superuser(self):
+        return self.is_admin

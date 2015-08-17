@@ -21,9 +21,11 @@
         return RemoteUsers;
 
 
-        function getAllRemoteUsers(page_size, page){
+        function getAllRemoteUsers(page_size, page, searchFilter, ordering){
             return $http.get('/api/v1/remoteusers/', {
-                params: {page_size: page_size, page:page}
+                params: {page_size: page_size, page:page,
+                         search_filter: searchFilter,
+                         ordering: ordering}
             });
         }
 

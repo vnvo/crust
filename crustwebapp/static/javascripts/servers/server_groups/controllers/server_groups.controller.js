@@ -84,7 +84,7 @@
         };
 
         $scope.setPagingData = function(data, page, pageSize){
-            var pagedData = data.results;//.slice((page - 1) * pageSize, page * pageSize);
+            var pagedData = data.results;
             $scope.servergroups_data = pagedData;
             $scope.totalServerItems = data.count;
             if (!$scope.$$phase) {

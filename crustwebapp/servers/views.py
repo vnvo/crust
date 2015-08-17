@@ -19,7 +19,9 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = ServerGroup.objects.annotate(server_count=Count('server'))
-        queryset = queryset.annotate(serveraccount_count=Count('server__serveraccount'))
+        queryset = queryset.annotate(
+            serveraccount_count=Count('server__serveraccount')
+        )
 
         if self.request.user.is_admin:
             queryset = queryset.all().order_by('group_name')

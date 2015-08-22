@@ -20,6 +20,21 @@
             </label>
         </div>
     </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-4" for="servergroup__supervisor">Supervisor</label>
+        <div class="col-xs-7">
+            <input type="text" class="form-control" id="supervisoracl__supervisor"
+                   autocomplete="off" data-ng-model="vm.selected_supervisor"
+                   typeahead="item as item.username for item in vm.getSupSuggestion($viewValue) | filter:$viewValue"
+                   typeahead-wait-ms=500
+                   typeahead-loading="loadingSupervisors"
+                   />
+            <i ng-show="loadingSupervisors" class="fa fa-spinner fa-spin"></i>
+        </div>
+    </div>
+
+
     <div class="form-group">
         <label for="commandgroup__comment" class="control-label col-xs-4">Comment</label>
         <div class="col-xs-7">

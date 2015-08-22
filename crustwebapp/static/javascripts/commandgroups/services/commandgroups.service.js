@@ -20,9 +20,10 @@
 
         return CommandGroups;
 
-        function getAllCommandGroups(page_size, page){
+        function getAllCommandGroups(page_size, page, searchFilter, ordering){
             return $http.get('/api/v1/commandgroups/', {
-                params: {page_size:page_size, page:page}
+                params: {page_size:page_size, page:page,
+                         search_filter:searchFilter, ordering: ordering}
             });
         }
 

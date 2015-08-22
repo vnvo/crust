@@ -1,13 +1,15 @@
 from rest_framework import serializers
 from commandgroups.models import CommandGroup, CommandPattern
-
+from authentication.serializers import SupervisorSerializer
 
 class CommandGroupSerializer(serializers.ModelSerializer):
-    #pattern_count = serializers.IntegerField(
-    #    source='pattern_count', required=False, read_only=True)
+    pattern_count = serializers.IntegerField(
+        source='get_pattern_count', required=False, read_only=True)
+    supervisor = SupervisorSerializer(required=False, read_only=True)
+
     class Meta:
         model = CommandGroup
-        fields = ('id', 'command_group_name',
+        fields = ('id', 'command_group_name','supervisor',
                   'default_action', 'comment', 'pattern_count')
         read_only_fields = ('id', 'pattern_count')
 

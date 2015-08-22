@@ -56,6 +56,15 @@ class SupervisorViewSet(viewsets.ModelViewSet):
         if hint:
             queryset = queryset.filter(username__icontains=hint)
 
+        for key,val in self.request.query_params.iteritems():
+            if key in ['page', 'page_size', 'ordering', 'hint']:
+                continue
+
+            queryset = queryset.filter(**{key:val})
+
+        ordering = self.request.query_params.get('ordering', '-created_at')
+        queryset = queryset.order_by(ordering)
+
         return queryset
 
     def get_permissions(self):

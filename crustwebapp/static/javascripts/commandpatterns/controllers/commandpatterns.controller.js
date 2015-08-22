@@ -60,6 +60,17 @@
             currentPage: 1
         };
 
+        $scope.filterText = null;
+        $scope.filterOptions = {
+            filterText: $scope.filterText,
+            useExternalFilter: true
+        };
+
+        $scope.sortOptions = {
+            fields: ['pattern'],
+            directions: ['asc']
+        };
+
         $scope.setPagingData = function(data, page, pageSize){
             var pagedData = data.results;
             $scope.commandpatterns_data = pagedData;
@@ -69,11 +80,11 @@
             }
         };
 
-        $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+        $scope.getPagedDataAsync = function (pageSize, page, searchText, ordering) {
             setTimeout(function () {
                 var data;
 
-                CommandPatterns.all(pageSize, page).then(
+                CommandPatterns.all(pageSize, page, searchText, ordering).then(
                     getAllCPSuccess, getAllCPError
                 );
                 function getAllCPSuccess(data, status, headers, config){
@@ -87,21 +98,28 @@
         };
 
         $scope.$watch('pagingOptions', function (newVal, oldVal) {
-            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage || newVal.pageSize !== oldVal.pageSize)) {
-                $scope.getPagedDataAsync(
-                    $scope.pagingOptions.pageSize,
-                    $scope.pagingOptions.currentPage,
-                    'test');
+            if (newVal !== oldVal && (newVal.currentPage !== oldVal.currentPage
+                                      || newVal.pageSize !== oldVal.pageSize)) {
+                getCommandPatterns();
             }
         }, true);
 
-        function getCommandPatterns(){
-            $scope.getPagedDataAsync(
-                $scope.pagingOptions.pageSize,
-                $scope.pagingOptions.currentPage
-            );
-        }
-        getCommandPatterns();
+
+        $scope.$watch('gridOptions.$gridScope.filterText', function (newVal, oldVal) {
+            if (newVal !== oldVal) {
+                getCommandPatterns();
+            }
+        }, true);
+
+
+        $scope.$watch('sortOptions', function (newVal, oldVal) {
+            if (newVal !== oldVal) {
+                $scope.ordering = $scope.sortOptions.directions[0] === 'desc'? '-':'';
+                $scope.ordering = $scope.ordering + $scope.sortOptions.fields[0].toLowerCase().replace('.', '__');
+                getCommandPatterns();
+            }
+        }, true);
+
 
         $scope.gridOptions = {
             data: 'commandpatterns_data',
@@ -111,6 +129,10 @@
             showFooter: true,
             showGroupPanel: true,
             showFilter: true,
+            multiSelect: false,
+            useExternalSorting: true,
+            sortInfo: $scope.sortOptions,
+            totalServerItems: "totalServerItems",
             columnDefs: [
                 {displayName:'#', width: 30,
                  cellTemplate: '<div class="ngCellText" data-ng-class="col.colIndex()"><span>{{row.rowIndex + 1}}</span></div>'
@@ -124,9 +146,18 @@
                  cellTemplate: '/static/templates/commandpatterns/grid_cell.actions.templ.html'
                 }
             ],
-            plugins: [new ngGridCsvExportPlugin()],
-            pagingOptions: $scope.pagingOptions
+            pagingOptions: $scope.pagingOptions,
+            filterOptions: $scope.filterOptions
         };
+
+        function getCommandPatterns(){
+            $scope.getPagedDataAsync(
+                $scope.pagingOptions.pageSize,
+                $scope.pagingOptions.currentPage,
+                $scope.gridOptions.$gridScope.filterText,
+                $scope.ordering
+            );
+        }
     }
 
 })();

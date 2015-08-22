@@ -84,6 +84,38 @@ class CommandPatternsViewSet(viewsets.ModelViewSet):
     queryset = CommandPattern.objects.all()
     serializer_class = CommandPatternSerializer
 
+
+    def get_queryset(self):
+        queryset = CommandPattern.objects
+
+        if self.request.user.is_admin:
+            queryset = queryset.all()
+        else:
+            queryset = queryset.filter(
+                commandgroup__supervisor=self.request.user
+            )
+
+        hint = self.request.query_params.get('hint', None)
+        search_filter = self.request.query_params.get('search_filter', None)
+        if hint:
+            queryset = queryset.filter(pattern__icontains=hint)
+        if search_filter:
+            queryset = queryset.filter(
+                Q(command_group__command_group_name__icontains=search_filter)|
+                Q(pattern__icontains=search_filter)
+            )
+
+        for key,val in self.request.query_params.iteritems():
+            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+                continue
+
+            queryset = queryset.filter(**{key:val})
+
+        ordering = self.request.query_params.get('ordering', 'pattern')
+        queryset = queryset.order_by(ordering)
+
+        return queryset
+
     def get_permissions(self):
         return (permissions.IsAuthenticated(), IsAdminOrCommandPatternOwner())
 

@@ -19,9 +19,10 @@
 
         return CommandPatterns;
 
-        function getAllCommandPatterns(page_size, page){
+        function getAllCommandPatterns(page_size, page, searchFilter, ordering){
             return $http.get('/api/v1/commandpatterns/', {
-                params: {page_size:page_size, page:page}
+                params: {page_size:page_size, page:page,
+                         search_filter:searchFilter, ordering:ordering}
             });
         }
 

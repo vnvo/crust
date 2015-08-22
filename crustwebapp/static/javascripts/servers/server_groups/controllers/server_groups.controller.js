@@ -134,7 +134,6 @@
         }, true);
 
 
-        //getServerGroups();
         $scope.gridOptions = {
             data: 'servergroups_data',
             rowHeight: 35,
@@ -160,7 +159,6 @@
                  cellTemplate: '/static/templates/servers/server_groups/grid_cell.actions.templ.html'
                 }
             ],
-            //plugins: [new ngGridCsvExportPlugin()],
             pagingOptions: $scope.pagingOptions,
             filterOptions: $scope.filterOptions
         };

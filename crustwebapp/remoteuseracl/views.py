@@ -7,19 +7,54 @@ from commandgroups.models import CommandGroup
 from remoteusers.models import RemoteUser
 from remoteuseracl.models import RemoteUserACL
 from remoteuseracl.serializers import RemoteUserACLSerializer
-
+from django.db.models import Q, Count
+from remoteuseracl.permissions import IsAdminOrRuleOwner
 from authentication.permissions import IsAdmin
 
 
 class RemoteUserACLViewSet(viewsets.ModelViewSet):
     queryset = RemoteUserACL.objects.all()
     serializer_class = RemoteUserACLSerializer
-    #pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        queryset = RemoteUserACL.objects
+
+        if self.request.user.is_admin:
+            queryset = queryset.all()
+        else:
+            queryset = queryset.filter(
+                Q(server_group__supervisor=self.request.user)|
+                Q(server__server_group__supervisor=self.request.user)|
+                Q(server_account__server__server_group__supervisor=self.request.user)
+            )
+
+        #hint = self.request.query_params.get('hint', None)
+        search_filter = self.request.query_params.get('search_filter', None)
+
+        if search_filter:
+            queryset = queryset.filter(
+                Q(remote_user__username__icontains=search_filter)|
+                Q(server_account__username__icontains=search_filter)|
+                Q(server_account__server__server_name__icontains=search_filter)|
+                Q(server__server_name__icontains=search_filter)|
+                Q(server_group__group_name__icontains=search_filter)|
+                Q(command_group__command_group_name__icontains=search_filter)
+            )
+
+        for key, val in self.request.query_params.iteritems():
+            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+                continue
+            print key, val
+            queryset = queryset.filter(**{key:val})
+
+        ordering = self.request.query_params.get('ordering', '-id')
+        queryset = queryset.order_by(ordering)
+
+        return queryset
+
 
     def get_permissions(self):
-        #if self.request.method in permissions.SAFE_METHODS:
-        #    return (permissions.IsAuthenticated, )
-        return (permissions.IsAuthenticated(), IsAdmin())
+        return (permissions.IsAuthenticated(), IsAdminOrRuleOwner())
 
     def create(self, request):
         data = request.data

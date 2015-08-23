@@ -20,10 +20,11 @@
         return RemoteUserACLs;
 
 
-        function getAllRuACLs(pageSize, page){
+        function getAllRuACLs(pageSize, page, searchFilter, ordering){
             return $http.get(
                 '/api/v1/remoteuseracls/',{
-                    params: {page_size: pageSize, page: page}
+                    params: {page_size: pageSize, page: page,
+                             search_filter: searchFilter, ordering:ordering}
                 }
             );
         }

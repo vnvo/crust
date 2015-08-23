@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import views
 from django.contrib.auth import authenticate, login, logout
+from django.db.models import Q
 from authentication.models import Supervisor
 from authentication.permissions import IsAdmin
 from authentication.serializers import SupervisorSerializer
@@ -51,15 +52,26 @@ class SupervisorViewSet(viewsets.ModelViewSet):
     serializer_class = SupervisorSerializer
 
     def get_queryset(self):
-        queryset = Supervisor.objects.all()
+        queryset = Supervisor.objects
+
+        if self.request.user.is_admin:
+            queryset = queryset.all()
+        else:
+            queryset = queryset.filter(username=self.request.user.username)
+
         hint = self.request.query_params.get('hint', None)
+        search_filter = self.request.query_params.get('search_filter', None)
         if hint:
             queryset = queryset.filter(username__icontains=hint)
+        if search_filter:
+            queryset = queryset.filter(
+                Q(username__icontains=search_filter)|
+                Q(email__icontains=search_filter)
+            )
 
         for key,val in self.request.query_params.iteritems():
-            if key in ['page', 'page_size', 'ordering', 'hint']:
+            if key in ['page', 'page_size', 'ordering', 'hint', 'search_filter']:
                 continue
-
             queryset = queryset.filter(**{key:val})
 
         ordering = self.request.query_params.get('ordering', '-created_at')

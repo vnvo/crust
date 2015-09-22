@@ -42,7 +42,7 @@ class Server(models.Model):
     comment = models.TextField(blank=True, default='')
 
     def __unicode__(self):
-        return '%s (%s)'%(self.server_name, self.server_ip)
+        return self.server_name
 
     @property
     def get_serveraccount_count(self):

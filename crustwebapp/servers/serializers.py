@@ -53,7 +53,7 @@ class ServerAccountSerializer(serializers.ModelSerializer):
     """
     @todo: fix the default value to something meaningfull and reliable
     """
-    server = ServerSerializer(read_only=True, default=Server.objects.get(id=1))
+    server = ServerSerializer(read_only=True, required=False)
     server_account_repr = serializers.CharField(
         source='get_server_account_repr', required=False, read_only=True)
 
@@ -65,7 +65,7 @@ class ServerAccountSerializer(serializers.ModelSerializer):
             'is_locked', 'server_account_repr'
         )
 
-        read_only_fields = ('id', 'server_account_repr')
+        read_only_fields = ('id', 'server_account_repr', 'server')
 
     def get_validation_exclusions(self, *args, **kwargs):
         exclusions = super(ServerAccountSerializer, self).get_validation_exclusions()

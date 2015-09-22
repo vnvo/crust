@@ -271,7 +271,7 @@ class InteractiveLogger(object):
         if debug:
             self.terminal.write(data)
             #cur_pos = self.terminal.get_cursor_position()
-            self._write_session_event(self.terminal.dump())
+            self._write_session_event(self.terminal.dump_html())
 
     def finish_up(self):
         end_time = str(datetime.datetime.now())

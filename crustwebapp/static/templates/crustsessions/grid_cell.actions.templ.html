@@ -1,0 +1,14 @@
+<div class="ngCelltext">
+    <div class="btn-group">
+        <button class="btn btn-primary" title="View Log"
+                ng-click="viewSessionLog($event, row)">
+            <i class="fa fa-eye fa-xs"></i>
+        </button>
+        <button class="btn btn-danger" title="Kill Session"
+                ng-click="killSession($event, row)"
+                 ng-show="row.getProperty('status')=='ESTABLISHED'"
+                >
+            <i class="fa fa-stop fa-xs"></i>
+        </button>
+    </div>
+</div>

@@ -1,0 +1,9 @@
+<div class="row">
+    <button ng-click="session_play=!session_play">
+        <i class="fa fa-play" ng-show="!session_play"></i>
+        <i class="fa fa-pause" ng-show="session_play"></i>
+    </button>
+    <div class="col-xs-12" style="background-color: black; color:white;"
+         ng-bind-html="current_session_event.content|htmlAllow">
+    </div>
+</div>

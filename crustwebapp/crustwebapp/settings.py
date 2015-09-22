@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'compressor',
+    'rest_framework_swagger',
 
     ### Crust Components ###
     'authentication',
@@ -45,7 +46,8 @@ INSTALLED_APPS = (
     'remoteusers',
     'commandgroups',
     'remoteuseracl',
-    'supervisoracl'
+    'supervisoracl',
+    'crustsessions',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -132,3 +134,7 @@ ALLOWED_HOSTS = ['*']
 AUTH_USER_MODEL = 'authentication.Supervisor'
 
 SESSION_COOKIE_AGE = 3600
+
+SWAGGER_SETTINGS = {
+    'is_superuser': True
+}

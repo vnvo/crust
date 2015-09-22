@@ -25,6 +25,9 @@ from remoteuseracl.views import RemoteUserACLCountView
 from supervisoracl.views import SupervisorACLViewSet
 from supervisoracl.views import SupervisorACLCountView
 
+from crustsessions.views import CrustCLISessionViewSet
+from crustsessions.views import CrustSessionEventViewSet
+
 from crustwebapp.views import IndexView
 
 # setup router
@@ -38,10 +41,15 @@ router.register(r'commandgroups', CommandGroupsViewSet, base_name='commandgroup'
 router.register(r'commandpatterns', CommandPatternsViewSet)
 router.register(r'remoteuseracls', RemoteUserACLViewSet)
 router.register(r'supervisoracls', SupervisorACLViewSet)
+router.register(r'crustsessions', CrustCLISessionViewSet, base_name='crustsessions')
+session_router = routers.NestedSimpleRouter(router, r'crustsessions', lookup='crustsession')
+session_router.register(r'log', CrustSessionEventViewSet)
+
 
 urlpatterns = patterns(
     '',
 
+    url(r'api-doc/v1/', include('rest_framework_swagger.urls')),
     url(r'^admin/', include(admin.site.urls)),
 
     ### Dashboard General Stats
@@ -79,7 +87,7 @@ urlpatterns = patterns(
 
     ### Model View Routes
     url(r'^api/v1/', include(router.urls)),
-
+    url(r'^api/v1/', include(session_router.urls)),
 
     ### Authentication
     url(r'^api/v1/auth/login/$', LoginView.as_view(), name='login'),

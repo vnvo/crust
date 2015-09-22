@@ -76,6 +76,18 @@
                     controllerAs: 'vm',
                     templateUrl: '/static/templates/supervisoracls/supervisoracls.html'
                 }
+            ).when(
+                '/crustsessions', {
+                    controller: 'CrustSessionsController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/crustsessions/crustsessions.html'
+                }
+            ).when(
+                '/crustsessions/:session_id/logs', {
+                    controller: 'CrustSessionLogsController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/crustsessions/crustsession_logs.html'
+                }
             ).otherwise('/dashboard');
     }
 })();

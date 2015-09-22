@@ -17,7 +17,8 @@
             'crust.commandgroups',
             'crust.commandpatterns',
             'crust.remoteuseracls',
-            'crust.supervisoracls'
+            'crust.supervisoracls',
+            'crust.crustsessions'
         ]);
 
     angular
@@ -71,3 +72,30 @@ function run($http, $rootScope, $location, Authentication) {
         }
     }
 }
+
+// register filters
+angular
+    .module('crust')
+    .filter('htmlAllow', htmlAllow)
+    .filter('nl2br', nl2br)
+    .filter('space2nbsp', space2nbsp);
+
+htmlAllow.$inject = ['$sce'];
+function htmlAllow($sce){
+    return function(htmlCode){
+        return $sce.trustAsHtml(htmlCode);
+    };
+};
+
+function nl2br(){
+    return function(text){
+        console.log(text);
+        return text ? text.replace(/\n/g, '<br>') : '';
+    };
+};
+
+function space2nbsp(){
+    return function(text){
+        return text ? text.replace(/ /g, '\u00a0') : '';
+    };
+};

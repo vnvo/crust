@@ -4557,7 +4557,7 @@ def css_renditions(selector=None):
         template_path = os.path.join(
             os.path.split(__file__)[0], 'templates', template_name)
     if not os.path.exists(template_path):
-        raise IOError("File not found: %s" % template_name)
+        raise IOError("File not found: %s/%s" %(template_path, template_name) )
     with open(template_path) as f:
         css = f.read()
     renditions_template = Template(css)

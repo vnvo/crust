@@ -15,8 +15,11 @@ import datetime
 from optparse import OptionParser
 from shell_box_menu import ShellBoxMenu
 from db_utils import get_remote_user_by_username, get_acls_by_remote_user
+from db_utils import start_new_cli_sessions, save_cli_session_event
+from db_utils import close_cli_session
 from lib.ipaddr import IPNetwork, IPAddress
 from lib.terminal import Terminal
+from lib.terminal import css_renditions
 
 SESSION_LOG_PATH = '/var/log/shell_box'
 
@@ -64,6 +67,7 @@ class SSHGateway (paramiko.ServerInterface):
         self.remote_credentials = None
         self.remote_addr = IPAddress(remote_addr)
         self.user = None
+        self.tty_size = None
 
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
@@ -124,6 +128,7 @@ class SSHGateway (paramiko.ServerInterface):
         channel.requested_action = 'interactive'
         logger.debug('Handled a PTY request (term=%s w=%s h=%s)'%(term, width,
                                                                   height))
+        self.tty_size = (width, height)
         return True
 
     def check_channel_subsystem_request(self, channel, name):
@@ -145,7 +150,7 @@ class SSHGateway (paramiko.ServerInterface):
                 width,
                 height))
             channel.paired_interactive_session.resize_pty(width, height)
-
+            self.tty_size = (width, height)
 
 def create_user_log_dirs(username):
     """
@@ -203,16 +208,42 @@ class SSHExecuteSCPLogger(object):
 class InteractiveLogger(object):
     action_type = 'interactive'
 
-    def __init__(self, username, remote_host, server_user, server_host, exec_cmd=None):
-        self.remote_username = username
+    def __init__(self, sshgw, remote_host, serveraccount_obj, exec_cmd=None):
+        remoteuser_obj = sshgw.user
+        self.sshgw = sshgw
+        self.tty_size = sshgw.tty_size
+        self.remote_username = remoteuser_obj.username
         self.remote_host = remote_host
-        self.server_user = server_user
-        self.server_host = server_host
+        self.server_user = serveraccount_obj.username
+        self.server_host = serveraccount_obj.server.server_ip
         self.exec_cmd = exec_cmd
         self.output_name = None
         self.output = None
+        self.terminal = Terminal(*self.tty_size)
+        self.debug_out = open('/tmp/tt.log', 'w')
+        self.debug_out.write(css_renditions()+'\n\n\n')
+        self.session = None
         self._setup_output()
+        self._setup_session(remoteuser_obj, serveraccount_obj, remote_host)
 
+    def _setup_session(self, remoteuser_obj, serveraccount_obj, remote_host):
+        self.session = start_new_cli_sessions(
+            remoteuser_obj, serveraccount_obj, (remote_host, 0)
+        )
+
+    def _write_session_event(self, content):
+        if self.tty_size != self.sshgw.tty_size:
+            self.tty_size = self.sshgw.tty_size
+            self.terminal.resize(self.tty_size[0], self.tty_size[1])
+
+        if self.tty_size is None:
+            self.tty_size(80,80)
+
+        save_cli_session_event(self.session, time.time(),
+                               self.sshgw.tty_size, content)
+
+    def _close_session(self, term_cause):
+        close_cli_session(self.session, term_cause)
 
     def _setup_output(self):
         log_dir_path = create_user_log_dirs(self.remote_username)
@@ -234,15 +265,20 @@ class InteractiveLogger(object):
             self.output.write('Exec CMD: %s\n'%self.exec_cmd)
         self.output.write('==========================================\n\n\n')
 
-    def log(self, data):
+    def log(self, data, debug=False):
         self.output.write(data)
         self.output.flush()
+        if debug:
+            self.terminal.write(data)
+            #cur_pos = self.terminal.get_cursor_position()
+            self._write_session_event(self.terminal.dump())
 
     def finish_up(self):
         end_time = str(datetime.datetime.now())
         self.output.write('============= End: %s ===============\n'%end_time)
         self.output.close()
-
+        self.debug_out.close()
+        self._close_session('CLOSED-NORMAL')
 
 def configure_logger():
     print "preparint logging ..."
@@ -294,7 +330,7 @@ def configure_logger():
     return logtemp
 
 
-def copy_data(source, drain, copy_stderr, session_logger):
+def copy_data_from_client(source, drain, copy_stderr, session_logger):
     while source.recv_ready():
         data = source.recv(4096)
         #print ('stdin', 'stdout')[copy_stderr] + ': ' + repr(data)
@@ -303,6 +339,23 @@ def copy_data(source, drain, copy_stderr, session_logger):
 
         if session_logger: # and session_logger.action_type!='interactive':
             session_logger.log(data)
+
+    # We only want to copy stderr when we're collecting data
+    # from the app channel
+    while copy_stderr and source.recv_stderr_ready():
+        data = source.recv_stderr(4096)
+        if len(data) == 0: raise ChannelClosedException()
+        drain.sendall_stderr(data)
+
+def copy_data_from_server(source, drain, copy_stderr, session_logger):
+    while source.recv_ready():
+        data = source.recv(4096)
+        #print ('stdin', 'stdout')[copy_stderr] + ': ' + repr(data)
+        if len(data) == 0: raise ChannelClosedException()
+        drain.sendall(data)
+
+        if session_logger: # and session_logger.action_type!='interactive':
+            session_logger.log(data, True)
 
     # We only want to copy stderr when we're collecting data
     # from the app channel
@@ -330,14 +383,14 @@ def copy_bidirectional_blocking(client, server, session_logger):
         try:
             if session_logger.action_type=='exec_scp':
                 if session_logger.scp_mode=='t':
-                    copy_data(client, server, False, session_logger)
+                    copy_data_from_client(client, server, False, session_logger)
                 else:
-                    copy_data(client, server, False, None)
+                    copy_data_from_client(client, server, False, None)
 
-            elif session_logger.action_type=='interactive':
-                copy_data(client, server, False, None)
+            elif session_logger.action_type!='interactive':
+                copy_data_from_client(client, server, False, None)
             else:
-                copy_data(client, server, False, session_logger)
+                copy_data_from_client(client, server, False, session_logger)
 
         except ChannelClosedException:
             channel_closed = True
@@ -353,11 +406,11 @@ def copy_bidirectional_blocking(client, server, session_logger):
         try:
             if session_logger.action_type=='exec_scp':
                 if session_logger.scp_mode=='f':
-                    copy_data(server, client, True, session_logger)
+                    copy_data_from_server(server, client, True, session_logger)
                 else:
-                    copy_data(server, client, True, None)
+                    copy_data_from_server(server, client, True, None)
             else:
-                copy_data(server, client, True, session_logger)
+                copy_data_from_server(server, client, True, session_logger)
 
         except ChannelClosedException:
             channel_closed = True
@@ -489,8 +542,8 @@ def run_session(client, client_addr):
                                    userchan.height)
         userchan.paired_interactive_session = appchan
         remote_username = sshgw.remote_credentials[0]
-        session_logger = InteractiveLogger(remote_username, remote_host,
-                                           username, server_host)
+        session_logger = InteractiveLogger(sshgw, remote_host,
+                                           target_server_account)
 
     elif userchan.requested_action == 'execute':
         appchan = app.get_transport().open_session()
@@ -501,8 +554,8 @@ def run_session(client, client_addr):
                                                  username, server_host,
                                                  userchan.user_command)
         else:
-            session_logger = InteractiveLogger(remote_username, remote_host,
-                                               username, server_host,
+            session_logger = InteractiveLogger(sshgw, remote_host,
+                                               target_server_account,
                                                userchan.user_command)
     else:
         logger.warn('Unknown or unset action for userchannel: %s, aborting'%userchan.requested_action)

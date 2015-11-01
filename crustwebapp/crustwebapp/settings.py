@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'remoteuseracl',
     'supervisoracl',
     'crustsessions',
+    'bulkcommand'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -133,7 +134,7 @@ ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'authentication.Supervisor'
 
-SESSION_COOKIE_AGE = 3600
+SESSION_COOKIE_AGE = 36000
 
 SWAGGER_SETTINGS = {
     'is_superuser': True

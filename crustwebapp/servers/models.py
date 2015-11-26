@@ -22,6 +22,11 @@ class ServerGroup(models.Model):
 
         return sa_count
 
+    def __repr__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return '%s'%self.group_name
 
 class Server(models.Model):
     '''
@@ -43,6 +48,10 @@ class Server(models.Model):
 
     def __unicode__(self):
         return self.server_name
+
+
+    def __repr__(self):
+        return self.__unicode__()
 
     @property
     def get_serveraccount_count(self):
@@ -80,3 +89,6 @@ class ServerAccount(models.Model):
             self.username,
             self.server.server_name
         )
+
+    def __repr__(self):
+        return self.__unicode__()

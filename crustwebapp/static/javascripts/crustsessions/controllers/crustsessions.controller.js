@@ -6,11 +6,16 @@
         .controller('CrustSessionsController', CrustSessionsController);
 
     CrustSessionsController.$inject = [
-        '$scope', 'CrustSessions', 'Snackbar', 'ngDialog'
+        '$scope', '$interval', 'CrustSessions', 'Snackbar', 'ngDialog'
     ];
 
-    function CrustSessionsController($scope, CrustSessions, Snackbar, ngDialog){
+    function CrustSessionsController($scope, $interval, CrustSessions, Snackbar, ngDialog){
         var vm = this;
+
+        var timer = $interval(getCrustSessions, 5000);
+        $scope.$on('$destroy', function(){
+            vm.stopTimer();
+        });
 
         //getRuACLs();
         $scope.killSession = function(event, grid_row){
@@ -32,6 +37,13 @@
                 );
             }
         };
+
+        function stopTimer(){
+            if(angular.isDefined(timer)){
+                $interval.cancel(timer);
+                timer = undefined;
+            }
+        }
 
         // Init/config ngGrid instance
 

@@ -79,3 +79,15 @@ def get_server_by_addr(host_addr):
 def get_server_by_name(host_name):
     server_obj = Server.objects.filter(server_name=str(host_name))
     return server_obj
+
+
+def get_server_groups_for_user(user_obj):
+    return RemoteUserACL.get_filtered_server_groups(user_obj)
+
+def get_servers_by_group(user_obj, server_group):
+    return RemoteUserACL.get_filtered_servers_by_group(user_obj, server_group)
+
+def get_server_accounts_by_server(user_obj, server_obj):
+    return RemoteUserACL.get_filtered_server_accounts_by_server(
+        user_obj,
+        server_obj)

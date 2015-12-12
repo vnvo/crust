@@ -20,6 +20,7 @@ from db_utils import close_cli_session
 from lib.ipaddr import IPNetwork, IPAddress
 from lib.terminal import Terminal
 from lib.terminal import css_renditions
+from shell_menu import startCrustShellMenu
 
 SESSION_LOG_PATH = '/var/log/shell_box'
 
@@ -469,6 +470,31 @@ def cleanup(userchan, app):
     if app:
         app.close()
 
+def get_tty_fg():
+    # make a new process group within the same session as the parent. we
+    # do this so that if the user hits ctrl-c, etc in the curses program
+    # that's about to be exec'd, the SIGINT and friends won't be sent to
+    # the parent.
+    os.setpgrp()
+    import signal
+    # don't stop the process when we get SIGTTOU. since this is now in a
+    # background process group, SIGTTOU will be sent to this process when
+    # we call tcsetpgrp(), below. the default action when receiving that
+    # signal is to stop (process mode T).
+    hdlr = signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+
+    # open a file handle to the current tty
+    tty = os.open('/dev/tty', os.O_RDWR)
+
+    # ask for our new process group to be the foreground one on the
+    # controlling tty.
+    os.tcsetpgrp(tty, os.getpgrp())
+
+    # replace the old signal handler to minimize the chance of the child
+    # getting confused by a non-standard starting signal table.
+    signal.signal(signal.SIGTTOU, hdlr)
+
+
 def run_session(client, client_addr):
     user = paramiko.Transport(client)
     add_host_keys(user)
@@ -496,7 +522,16 @@ def run_session(client, client_addr):
         logger.warn('Client never asked for a shell or sftp.')
         sys.exit(1)
 
-    target_server_account = ShellBoxMenu(userchan, sshgw.user, remote_host, logger).main()
+    target_server_account = ShellBoxMenu(
+        userchan, sshgw.user, remote_host, logger
+    ).main()
+
+    #target_server_account = startCrustShellMenu(userchan)
+    #import subprocess
+    #p = subprocess.Popen(
+    #    ["/home/vahid/.virtualenvs/crust/bin/python2", "./shell_menu.py"],
+    #    preexec_fn=get_tty_fg, stdin=userchan, stdout=userchan)
+
     logger.info('Selected: %s'%target_server_account)
     if not target_server_account:
         send_message(userchan, 'No Target Selected,Exit ...')

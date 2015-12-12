@@ -7,7 +7,9 @@ from clients.ssh_client import SecureShellClient
 import urwid
 from urwid.raw_display import Screen
 from db_utils import get_acls_by_remote_user
-
+from db_utils import get_server_groups_for_user
+from db_utils import get_servers_by_group
+from db_utils import get_server_accounts_by_server
 
 class FocusableText(urwid.WidgetWrap):
     """Selectable Text and meta data to hold server info"""
@@ -33,7 +35,7 @@ def padding_right(text, pad_len):
         text += ' '
     return text
 
-def create_server_tree(user_obj):
+def create_server_tree_old(user_obj):
     allowed_acl = get_acls_by_remote_user(user_obj)
     Text = FocusableText
     tree = (Text('Crust Shell'), [])
@@ -57,6 +59,65 @@ def create_server_tree(user_obj):
     acl_group = (Text('%s Access List'%user_obj.username), acl_nodes)
     tree[1].append(acl_group)
     return tree
+
+def create_server_group_tree(user_obj):
+    user_servergroups = get_server_groups_for_user(user_obj)
+    data_count = len(user_servergroups)
+    Text = FocusableText
+    tree = (Text('Crust Shell'), [])
+    sg_nodes = []
+    i = 0
+    for sg in user_servergroups:
+        i += 1
+        index = padding_right(str(i), data_count)
+        sg_nodes.append(
+            (Text('%s%s'%(index, sg), sg), None)
+        )
+
+    node_group = (Text('Server Groups'), sg_nodes)
+    #tree[1].append(node_group)
+    return [node_group]
+
+def create_server_tree(user_obj, server_group):
+    print 'create server tree'
+    user_servers = get_servers_by_group(user_obj, server_group)
+    data_count = len(user_servers)
+    Text = FocusableText
+    tree = (Text('Crust Shell'), [])
+    s_nodes = []
+    i = 0
+    for s in user_servers:
+        i += 1
+        s_nodes.append(
+            (Text('%s%s'%(padding_right(str(i), data_count), s), s), None)
+        )
+
+    node_group = (Text('Servers'), s_nodes)
+    #tree[1].append(node_group)
+    print node_group
+    return [node_group]
+
+def create_server_account_tree(user_obj, server):
+    print 'create server account tree'
+    user_accounts = get_server_accounts_by_server(user_obj, server)
+    data_count = len(user_accounts)
+    Text = FocusableText
+    tree = (Text('Crust Shell'), [])
+    sa_nodes = []
+    i = 0
+    for sa in user_accounts:
+        i += 1
+        sa_nodes.append(
+            (Text('%s%s'%(padding_right(str(i), data_count), sa), sa), None)
+        )
+
+    node_group = (Text('Server Accounts'), sa_nodes)
+    #tree[1].append(node_group)
+    print node_group
+    return [node_group]
+
+
+
 
 class ShellScreen(Screen):
     def get_available_raw_input(self):
@@ -103,10 +164,18 @@ class ShellBoxMenu(object):
         ]
 
         self.quit = False
+        self.selected_server_group = None
+        self.selected_server = None
         self.selected = None
-        stree = SimpleTree([create_server_tree(self.user_obj)])
+        self.current_level = 'server-group'
+        self.root_node = [FocusableText('Crust Shell'), []]
+        stree = SimpleTree([self.root_node])
         atree = ArrowTree(stree)
         self.treebox = TreeBox(atree)
+        #stree = SimpleTree([create_server_tree(self.user_obj)])
+        #atree = ArrowTree(stree)
+        #self.treebox = TreeBox(atree)
+        self._setup_tree()
         self.rootwidget = urwid.AttrMap(self.treebox, 'body')
         self.ui = None
         self.size = None
@@ -120,6 +189,27 @@ class ShellBoxMenu(object):
                                 footer=self.footer)
         self.logger.info('Shell Menu, ready to serve "%s@%s" ...'%(
             self.user_obj, self.remote_host))
+
+    def _setup_tree(self):
+        #self.root_node = None
+        self.logger.info('setup tree called ........%s'%self.current_level)
+        if self.root_node[1]:
+            self.root_node[1].pop()
+
+        self.root_node[1].append( self._create_level_tree()[0] )
+        self.logger.info('after tree setup ... %s'%str(self.root_node))
+        #self.rootwidget = urwid.AttrMap(self.treebox, 'body')
+        self.treebox.refresh()
+        self.logger.info('after treebox refresh')
+
+    def _create_level_tree(self):
+        if self.current_level == 'server-group':
+            return create_server_group_tree(self.user_obj)
+        elif self.current_level == 'server':
+            return create_server_tree(self.user_obj, self.selected_server_group)
+        else:
+            return create_server_account_tree(self.user_obj, self.selected_server)
+
 
     def main(self):
         try:
@@ -147,11 +237,18 @@ class ShellBoxMenu(object):
             self.size = self.ui.get_cols_rows()
             self.logger.info('Shell Menu, run size=%s'%str(self.size))
             while True:
-                current_focus = self.treebox.get_focus()
+                try:
+                    current_focus = self.treebox.get_focus()
+                except Exception as e:
+                    self.logger.info(str(e))
+                    self._setup_tree()
+                    break #continue
+
+                self.logger.info(current_focus[0].get_focus().text)
                 header_focus_name = ''
                 try:
                     selected_sa = current_focus[0].get_focus().metadata
-                    header_focus_name = selected_sa.get_server_account_repr
+                    header_focus_name = str(selected_sa)#.get_server_account_repr
                 except:
                     header_focus_name = 'N/A'
 
@@ -188,12 +285,37 @@ class ShellBoxMenu(object):
                         return
 
                     if k == 'enter':
-                        server_data = current_focus[0].get_focus().metadata
-                        if server_data:
-                            self.quit = True
-                            self.stop_ui()
-                            self.selected = server_data
-                            return
+                        selected = current_focus[0].get_focus().metadata
+                        if selected:
+                            if self.current_level == 'server-account':
+                                self.quit = True
+                                self.stop_ui()
+                                self.selected = selected
+                                return
+
+                            elif self.current_level == 'server-group':
+                                self.current_level = 'server'
+                                self.selected_server_group = selected
+                                self._setup_tree()
+
+                            elif self.current_level == 'server':
+                                self.current_level = 'server-account'
+                                self.selected_server = selected
+                                self._setup_tree()
+
+                        else:
+                            label = current_focus[0].get_focus().text
+                            if label == 'Servers':
+                                self.current_level = 'server-group'
+                                self.selected_server_group = None
+                                self.selected_server = None
+                            elif label == 'Server Accounts':
+                                self.current_level = 'server'
+                                self.selected_server = None
+
+                            self._setup_tree()
+
+
         except:# Exception as e:
             self.logger.exception('Shell Menu, run:')
             #raise

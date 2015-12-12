@@ -3,19 +3,19 @@
 
     angular
         .module('crust.crustsessions.controllers')
-        .controller('CrustSessionsController', CrustSessionsController);
+        .controller('CrustActiveSessionsController', CrustSessionsController);
 
     CrustSessionsController.$inject = [
-        '$scope', 'CrustSessions', 'Snackbar', 'ngDialog'
+        '$scope', '$interval', 'CrustSessions', 'Snackbar', 'ngDialog'
     ];
 
-    function CrustSessionsController($scope, CrustSessions, Snackbar, ngDialog){
+    function CrustSessionsController($scope, $interval, CrustSessions, Snackbar, ngDialog){
         var vm = this;
-
-        //var timer = $interval(getCrustSessions, 5000);
-        //$scope.$on('$destroy', function(){
-        //    vm.stopTimer();
-        //});
+        vm.stopTimer = stopTimer;
+        var timer = $interval(getCrustSessions, 5000);
+        $scope.$on('$destroy', function(){
+            vm.stopTimer();
+        });
 
         //getRuACLs();
         $scope.killSession = function(event, grid_row){
@@ -38,12 +38,12 @@
             }
         };
 
-        //function stopTimer(){
-        //    if(angular.isDefined(timer)){
-        //        $interval.cancel(timer);
-        //        timer = undefined;
-        //    }
-        //}
+        function stopTimer(){
+            if(angular.isDefined(timer)){
+                $interval.cancel(timer);
+                timer = undefined;
+            }
+        }
 
         // Init/config ngGrid instance
 
@@ -78,7 +78,7 @@
             setTimeout(function () {
                 var data;
 
-                CrustSessions.all(pageSize, page, searchText, ordering).then(
+                CrustSessions.allActive(pageSize, page, searchText, ordering).then(
                     getAllSessionsSuccess, getAllSessionsError
                 );
                 function getAllSessionsSuccess(data, status, headers, config){

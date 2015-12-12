@@ -77,6 +77,12 @@
                     templateUrl: '/static/templates/supervisoracls/supervisoracls.html'
                 }
             ).when(
+                '/crustsessions/active', {
+                    controller: 'CrustActiveSessionsController',
+                    controllerAs: 'vm',
+                    templateUrl: '/static/templates/crustsessions/crustsessions.html'
+                }
+            ).when(
                 '/crustsessions', {
                     controller: 'CrustSessionsController',
                     controllerAs: 'vm',

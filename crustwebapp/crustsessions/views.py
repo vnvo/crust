@@ -10,11 +10,20 @@ class CrustCLISessionViewSet(viewsets.ModelViewSet):
     serializer_class = CrustSessionSerializer
 
     def get_queryset(self):
+        filter_active = self.request.query_params.get('active', None)
+
         if self.request.user.is_admin:
             queryset = CrustCLISession.objects.all()
         else:
             queryset = CrustCLISession.objects.all()
         #@todo apply filter based on access (define permissions)
+
+        if filter_active:
+            queryset = queryset.exclude(status__icontains='closed')
+        else:
+            queryset = queryset.exclude(status__icontains='established')
+
+        queryset = queryset.order_by('-created_at')
 
         return queryset
 

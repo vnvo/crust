@@ -10,6 +10,7 @@
     function CrustSessions($http){
         var CrustSessions = {
             all: getAllSessions,
+            allActive: getAllActiveSessions,
             get: getSession,
             activeCount: getActiveCount,
             kill: killSession,
@@ -25,6 +26,16 @@
                              search_filter: searchFilter, ordering:ordering}
                 }
             );
+        }
+
+        function getAllActiveSessions(pageSize, page, searchFilter, ordering){
+            return $http.get(
+                '/api/v1/crustsessions/',{
+                    params: {page_size: pageSize, page: page, active: 1,
+                             search_filter: searchFilter, ordering:ordering}
+                }
+            );
+
         }
 
         function getSession(session_id){

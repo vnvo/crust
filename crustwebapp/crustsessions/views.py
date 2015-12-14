@@ -64,7 +64,7 @@ class CrustKillSessionView(views.APIView):
             os.system('sudo kill -9 %s'%pid_to_kill)
             session_obj.termination_cause = 'Kill By %s'%request.user
             session_obj.terminated_at = datetime.now()
-            session_obj.status = 'Closed-Killed'
+            session_obj.status = 'CLOSED-KILLED'
             session_obj.save()
 
             return Response({'killed':True}, status=status.HTTP_200_OK)

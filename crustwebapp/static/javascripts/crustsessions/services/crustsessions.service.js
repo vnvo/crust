@@ -47,8 +47,8 @@
         }
 
         function killSession(session_id){
-            return $http.post('/api/v1/crustsessions/active/kill/',
-                              {session_id:session_id});
+            return $http.get('/api/v1/crustsessions/kill/',{
+                params: {session_id:session_id}});
         }
 
         function getSessionLogs(session_id, pageSize, page){

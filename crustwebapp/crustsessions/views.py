@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 from rest_framework import permissions, viewsets
 from rest_framework import views, status
 from rest_framework.response import Response
@@ -48,3 +50,21 @@ class CrustSessionCountView(views.APIView):
 
     def get_permissions(self):
         return (permissions.IsAuthenticated(), )
+
+
+class CrustKillSessionView(views.APIView):
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), )
+
+    def get(self, request):
+        session_id = request.query_params.get('session_id', None)
+        session_obj = CrustCLISession.objects.get(id=session_id)
+        if session_obj:
+            pid_to_kill = session_obj.pid
+            os.system('sudo kill -9 %s'%pid_to_kill)
+            session_obj.termination_cause = 'Kill By %s'%request.user
+            session_obj.terminated_at = datetime.now()
+            session_obj.status = 'Closed-Killed'
+            session_obj.save()
+
+            return Response({'killed':True}, status=status.HTTP_200_OK)

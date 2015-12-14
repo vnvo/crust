@@ -20,6 +20,7 @@ class CrustCLISession(models.Model):
     termination_cause = models.CharField(max_length=256, blank=True, null=True)
     client_ip = models.CharField(max_length=32, null=True, blank=True)
     client_port = models.IntegerField(null=True, blank=True)
+    pid = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
         return '%s: %s@%s -> %s'%(

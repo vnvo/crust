@@ -48,7 +48,7 @@ INSTALLED_APPS = (
     'remoteuseracl',
     'supervisoracl',
     'crustsessions',
-    'bulkcommand'
+    #'bulkcommand'
 )
 
 MIDDLEWARE_CLASSES = (

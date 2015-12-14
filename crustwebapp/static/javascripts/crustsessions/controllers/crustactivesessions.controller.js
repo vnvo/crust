@@ -19,6 +19,7 @@
 
         //getRuACLs();
         $scope.killSession = function(event, grid_row){
+            alert('kill session called');
             event.stopPropagation();
             if(!confirm('You are killing an Active Session, Are you sure?'))
                 return;

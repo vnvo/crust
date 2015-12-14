@@ -28,7 +28,7 @@ def generate_session_id():
     new_session_id = uuid.uuid4()
     return new_session_id
 
-def start_new_cli_sessions(user_obj, serveraccount_obj, client_addr):
+def start_new_cli_sessions(user_obj, serveraccount_obj, client_addr, pid):
     session_id = generate_session_id()
     new_session = CrustCLISession(
         session_id=session_id,
@@ -37,7 +37,8 @@ def start_new_cli_sessions(user_obj, serveraccount_obj, client_addr):
         server=str(serveraccount_obj.server),
         status=SESSION_ESTAB,
         client_ip = client_addr[0],
-        client_port = client_addr[1]
+        client_port = client_addr[1],
+        pid = pid
     )
 
     new_session.save()

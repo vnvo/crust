@@ -229,7 +229,7 @@ class InteractiveLogger(object):
 
     def _setup_session(self, remoteuser_obj, serveraccount_obj, remote_host):
         self.session = start_new_cli_sessions(
-            remoteuser_obj, serveraccount_obj, (remote_host, 0)
+            remoteuser_obj, serveraccount_obj, (remote_host, 0), os.getpid()
         )
 
     def _write_session_event(self, content):

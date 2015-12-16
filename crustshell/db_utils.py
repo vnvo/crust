@@ -46,7 +46,7 @@ def start_new_cli_sessions(user_obj, serveraccount_obj, client_addr, pid):
 
 
 def save_cli_session_event(session_obj, event_time, tty_size, event_content):
-    print event_content
+    #print event_content
     new_event = CrustSessionEvent(
         session=session_obj,
         tty_size_width = tty_size[0],

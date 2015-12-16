@@ -37,7 +37,7 @@ class CommandGroupsViewSet(viewsets.ModelViewSet):
             )
 
         for key,val in self.request.query_params.iteritems():
-            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+            if key in ['page', 'page_size', 'ordering', 'search_filter', 'hint']:
                 continue
             print key, val
             queryset = queryset.filter(**{key:val})
@@ -67,7 +67,7 @@ class CommandGroupsViewSet(viewsets.ModelViewSet):
     def update(self, request, pk):
         cg_obj = CommandGroup.objects.get(id=pk)
         data = request.data
-        if request.user.is_admin and data.has_key('supervisor'):
+        if request.user.is_admin and data.has_key('supervisor') and data['supervisor']:
             supervisor = Supervisor.objects.get(id=int(data['supervisor']['id']))
         else:
             supervisor = self.request.user

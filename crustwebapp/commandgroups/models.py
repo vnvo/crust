@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from authentication.models import Supervisor
 
@@ -10,6 +11,16 @@ class CommandGroup(models.Model):
     @property
     def get_pattern_count(self):
         return self.commandpattern_set.count()
+
+    def check_command(self, command):
+        print 'checking ', command
+
+        for cp in self.commandpattern_set.all():
+            print 'cp=',cp.pattern
+            if re.match(cp.pattern, command):
+                return cp.action
+
+        return self.default_action
 
 class CommandPattern(models.Model):
     command_group = models.ForeignKey(CommandGroup)

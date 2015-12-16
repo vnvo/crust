@@ -90,7 +90,7 @@ function htmlAllow($sce){
 function nl2br(){
     return function(text){
         console.log(text);
-        return text ? text.replace(/\n/g, '<br>') : '';
+        return text ? text.toString().replace(/\n/g, '<br>') : '';
     };
 };
 

@@ -210,10 +210,11 @@ class InteractiveLogger(object):
     action_type = 'interactive'
 
     def __init__(self, sshgw, remote_host, serveraccount_obj, exec_cmd=None):
-        remoteuser_obj = sshgw.user
+        self.remoteuser_obj = sshgw.user
+        self.serveraccount_obj = serveraccount_obj
         self.sshgw = sshgw
         self.tty_size = sshgw.tty_size
-        self.remote_username = remoteuser_obj.username
+        self.remote_username = self.remoteuser_obj.username
         self.remote_host = remote_host
         self.server_user = serveraccount_obj.username
         self.server_host = serveraccount_obj.server.server_ip
@@ -225,7 +226,7 @@ class InteractiveLogger(object):
         self.debug_out.write(css_renditions()+'\n\n\n')
         self.session = None
         self._setup_output()
-        self._setup_session(remoteuser_obj, serveraccount_obj, remote_host)
+        self._setup_session(self.remoteuser_obj, serveraccount_obj, remote_host)
 
     def _setup_session(self, remoteuser_obj, serveraccount_obj, remote_host):
         self.session = start_new_cli_sessions(
@@ -331,12 +332,56 @@ def configure_logger():
     return logtemp
 
 
-def copy_data_from_client(source, drain, copy_stderr, session_logger):
+def check_user_command(command_buff, apply_acl):
+    print '*******************************************************************************'
+    command = command_buff.strip()
+    print command
+    print apply_acl.id
+    print apply_acl.command_group
+    #acl = server_account.apply_acl
+    #print acl.command_group
+
+    if apply_acl and apply_acl.command_group:
+        if apply_acl.command_group.check_command(command) == 'allow':
+            return True
+        else:
+            return False
+
+    return True
+
+def copy_data_from_client(source, drain, copy_stderr, session_logger,
+                          command_buff=None, apply_acl=None):
+
     while source.recv_ready():
         data = source.recv(4096)
         #print ('stdin', 'stdout')[copy_stderr] + ': ' + repr(data)
         if len(data) == 0: raise ChannelClosedException()
-        drain.sendall(data)
+        print 'command_buff=',command_buff
+        x = '\b' in data
+        print x
+        print 'data=', data, [ord(i) for i in data]
+        if command_buff is not None:
+            #try:
+                if ord(data) in [8, 127]: #del or backspace
+                    command_buff = command_buff[:-1]
+                else:
+                    command_buff += data
+            #except:
+            #    pass
+
+        if command_buff is not None and '\r' in data: #user has hit the enter
+            #command_buff += data
+            if not check_user_command(command_buff, apply_acl):
+                source.sendall('\r\n** You nan not run this command! **\r\n')
+                drain.sendall('\b'*len(command_buff))
+            else:
+                drain.sendall(data)
+            command_buff = ''
+
+        else:
+            #if command_buff is not None:
+            #    command_buff += data
+            drain.sendall(data)
 
         if session_logger: # and session_logger.action_type!='interactive':
             session_logger.log(data)
@@ -347,6 +392,8 @@ def copy_data_from_client(source, drain, copy_stderr, session_logger):
         data = source.recv_stderr(4096)
         if len(data) == 0: raise ChannelClosedException()
         drain.sendall_stderr(data)
+
+    return command_buff
 
 def copy_data_from_server(source, drain, copy_stderr, session_logger):
     while source.recv_ready():
@@ -366,12 +413,18 @@ def copy_data_from_server(source, drain, copy_stderr, session_logger):
         drain.sendall_stderr(data)
 
 
-def copy_bidirectional_blocking(client, server, session_logger):
+def copy_bidirectional_blocking(client, server, session_logger, apply_acl=None):
     socklist = (client.fileno(), server.fileno())
 
     # Copy data between the two SSH channels
     channel_closed = False
     abort = False
+    command_buff = None
+    if session_logger.action_type == 'interactive':
+        command_buff = ''
+
+    print command_buff
+
     while not abort:
         select.select(socklist, socklist, socklist, 1)
 
@@ -384,14 +437,15 @@ def copy_bidirectional_blocking(client, server, session_logger):
         try:
             if session_logger.action_type=='exec_scp':
                 if session_logger.scp_mode=='t':
-                    copy_data_from_client(client, server, False, session_logger)
+                    copy_data_from_client(client, server, False, session_logger, apply_acl=apply_acl)
                 else:
-                    copy_data_from_client(client, server, False, None)
+                    copy_data_from_client(client, server, False, None, apply_acl=apply_acl)
 
             elif session_logger.action_type!='interactive':
-                copy_data_from_client(client, server, False, None)
+                copy_data_from_client(client, server, False, None, apply_acl=apply_acl)
             else:
-                copy_data_from_client(client, server, False, session_logger)
+                command_buff = copy_data_from_client(
+                    client, server, False, session_logger, command_buff, apply_acl=apply_acl)
 
         except ChannelClosedException:
             channel_closed = True
@@ -525,7 +579,7 @@ def run_session(client, client_addr):
     target_server_account = ShellBoxMenu(
         userchan, sshgw.user, remote_host, logger
     ).main()
-
+    print target_server_account.apply_acl
     #target_server_account = startCrustShellMenu(userchan)
     #import subprocess
     #p = subprocess.Popen(
@@ -597,7 +651,8 @@ def run_session(client, client_addr):
         cleanup(userchan, app)
         return 1
 
-    copy_bidirectional_blocking(userchan, appchan, session_logger)
+    copy_bidirectional_blocking(userchan, appchan, session_logger,
+                                target_server_account.apply_acl)
     session_logger.finish_up()
 
     send_message(userchan, 'Terminating session ...')

@@ -4,6 +4,6 @@
         <i class="fa fa-pause" ng-show="session_play"></i>
     </button>
     <div class="col-xs-12" style="background-color: black; color:white;"
-         ng-bind-html="current_session_event.content|htmlAllow">
+         ng-bind-html="current_session_event.content|nl2br|htmlAllow">
     </div>
 </div>

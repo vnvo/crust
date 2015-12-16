@@ -1,9 +1,10 @@
 <div class="ngCelltext">
     <div class="btn-group">
-        <button class="btn btn-primary" title="View Log"
-                ng-click="viewSessionLog($event, row)">
+        <a class="btn btn-primary" title="View Log"
+           ng-href="/crustsessions/{{row.getProperty('id')}}/logs"
+           target="blank">
             <i class="fa fa-eye fa-xs"></i>
-        </button>
+        </a>
         <button class="btn btn-danger" title="Kill Session"
                 ng-click="killSession($event, row)"
                  ng-show="row.getProperty('status')=='ESTABLISHED'"

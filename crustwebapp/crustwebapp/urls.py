@@ -28,6 +28,7 @@ from supervisoracl.views import SupervisorACLCountView
 from crustsessions.views import CrustCLISessionViewSet
 from crustsessions.views import CrustSessionEventViewSet
 from crustsessions.views import CrustKillSessionView
+from crustsessions.views import CrustActiveSessionCountView
 
 from crustwebapp.views import IndexView
 
@@ -59,6 +60,10 @@ urlpatterns = patterns(
         name='crustsession-kill'),
 
     ### Dashboard General Stats
+    url(r'^api/v1/crustsessions/active/count/$',
+        CrustActiveSessionCountView.as_view(),
+        name='sessions-active-count'),
+
     url(r'^api/v1/servergroups/count/$',
         ServerGroupsCountView.as_view(),
         name='servergroups-count'),

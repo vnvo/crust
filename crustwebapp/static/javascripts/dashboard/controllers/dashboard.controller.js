@@ -11,15 +11,15 @@
 
     DashboardController.$inject = [
         '$scope', '$interval', 'Snackbar',
-        'ServerGroups', 'Servers', 'ServerAccounts',
-        'RemoteUsers'
+        'ServerGroups', 'Servers', 'CrustSessions',
+        'ServerAccounts', 'RemoteUsers'
     ];
 
     /**
      * @namespace DashboardController
      */
     function DashboardController($scope, $interval, Snackbar,
-                                 ServerGroups, Servers,
+                                 ServerGroups, Servers, CrustSessions,
                                  ServerAccounts, RemoteUsers){
         var vm = this;
 
@@ -29,33 +29,63 @@
         vm.remoteuser_count = 'n/a';
         vm.active_remote_session_count = 'n/a';
 
-        vm.getSystemStats = getSystemStats;
-        vm.stopTimer = stopTimer;
+        //only for fast chaning kpi
+        vm.getFastSystemStats = getFastSystemStats;
+        //only for slow changing kpi
+        vm.getSystemStats = getNormalSystemStats;
 
-        getSystemStats();
-        var timer = $interval(getSystemStats, 120000);
-        $scope.$on('$destroy', function() {
+        vm.stopTimers = stopTimers;
+
+        getNormalSystemStats();
+        getFastSystemStats();
+
+        var timer = $interval(getNormalSystemStats, 120000);
+        var fast_timer = $interval(getFastSystemStats, 10000);
+
+        $scope.$on('$destroy', function(){
             // Make sure that the interval is destroyed too
-            vm.stopTimer();
+            vm.stopTimers();
         });
 
         /**
-         * @name stopTimer
+         * @name stopTimers
          * @desc cancel the timer for fetching dashboard general data
          */
-        function stopTimer(){
+        function stopTimers(){
             if(angular.isDefined(timer)){
                 $interval.cancel(timer);
                 timer = undefined;
             }
+            if(angular.isDefined(fast_timer)){
+                $interval.cancel(fast_timer);
+                fast_timer = undefined;
+            }
         }
+
+
+        function getFastSystemStats(){
+            Snackbar.show('Fetching System Status ... ');
+
+            // Active Sessions
+            CrustSessions.activeCount().then(
+                getActiveCountSucccess, getActiveCountError
+            );
+            function getActiveCountSucccess(data, status, headers, config){
+                vm.active_remote_session_count = data.data.active_count;
+            }
+            function getActiveCountError(data, status, headers, config){
+                Snackbar.error('Can not get Active Sessions Count.');
+            }
+
+        }
+
 
         /**
          * @name getSystemStats
          * @desc Get current system statistics and general states for dashboard
          * @memberof crust.dashboard.controllers.DashboardController
          */
-        function getSystemStats(){
+        function getNormalSystemStats(){
             Snackbar.show('Fetching System Status ... ');
             // Server Groups
             ServerGroups.getCount().then(getSGCountSuccess, getSGCountError);
@@ -99,8 +129,6 @@
             function getRuCountError(data, status, headers, config){
                 Snackbar.error('Can not get Remote Users count.');
             }
-
-            vm.active_remote_session_count = 7;
         }
 
     }

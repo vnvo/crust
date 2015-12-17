@@ -46,11 +46,17 @@ class CrustSessionEventViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CrustSessionCountView(views.APIView):
+class CrustActiveSessionCountView(views.APIView):
 
     def get_permissions(self):
         return (permissions.IsAuthenticated(), )
 
+    def get(self, request):
+        queryset = CrustCLISession.objects.exclude(status__icontains='closed')
+        return Response(
+            {'active_count':queryset.count()},
+            status=status.HTTP_200_OK
+        )
 
 class CrustKillSessionView(views.APIView):
     def get_permissions(self):

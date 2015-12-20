@@ -3,7 +3,7 @@ from datetime import datetime
 from rest_framework import permissions, viewsets
 from rest_framework import views, status
 from rest_framework.response import Response
-
+from django.db.models import Q
 from crustsessions.models import CrustCLISession, CrustSessionEvent
 from crustsessions.serializers import CrustSessionSerializer
 from crustsessions.serializers import CrustSessionEventSerializer
@@ -13,19 +13,34 @@ class CrustCLISessionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         filter_active = self.request.query_params.get('active', None)
-
+        search_filter = self.request.query_params.get('search_filter', None)
         if self.request.user.is_admin:
             queryset = CrustCLISession.objects.all()
         else:
             queryset = CrustCLISession.objects.all()
         #@todo apply filter based on access (define permissions)
 
+        if search_filter:
+            queryset = queryset.filter(
+                Q(remoteuser=search_filter) |
+                Q(serveraccount__icontains=search_filter) |
+                Q(server__icontains=search_filter) |
+                Q(client_ip=search_filter)
+            )
+
+        for key,val in self.request.query_params.iteritems():
+            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+                continue
+
+            queryset = queryset.filter(**{key:val})
+
         if filter_active:
             queryset = queryset.exclude(status__icontains='closed')
         else:
             queryset = queryset.exclude(status__icontains='established')
 
-        queryset = queryset.order_by('-created_at')
+        ordering = self.request.query_params.get('ordering', '-created_at')
+        queryset = queryset.order_by(ordering)
 
         return queryset
 

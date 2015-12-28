@@ -146,15 +146,21 @@ class RemoteUserACL(models.Model):
                         allow_list.add(server_account)
                         sa_to_acl[server_account.id] = acl
             else:
-                sg_servers = acl.server_group.server_set.filter(server=server)
+                sg_servers = acl.server_group.server_set.filter(server_ip=server.server_ip)
                 if sg_servers and acl.acl_action == 'allow':
                     for server_account in sg_servers[0].serveraccount_set.all():
                         allow_list.add(server_account)
+                        sa_to_acl[server_account.id] = acl
 
         sa_allow_list = list(allow_list-deny_list)
         sa_allow_list_acl = []
         for sa in sa_allow_list:
+            #try:
             sa.apply_acl = sa_to_acl[sa.id]
+            #except:
+            #    sa.apply_acl = None
+            #    continue
+
             sa_allow_list_acl.append(sa)
 
         return sa_allow_list_acl

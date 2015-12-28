@@ -579,12 +579,6 @@ def run_session(client, client_addr):
     target_server_account = ShellBoxMenu(
         userchan, sshgw.user, remote_host, logger
     ).main()
-    print target_server_account.apply_acl
-    #target_server_account = startCrustShellMenu(userchan)
-    #import subprocess
-    #p = subprocess.Popen(
-    #    ["/home/vahid/.virtualenvs/crust/bin/python2", "./shell_menu.py"],
-    #    preexec_fn=get_tty_fg, stdin=userchan, stdout=userchan)
 
     logger.info('Selected: %s'%target_server_account)
     if not target_server_account:
@@ -595,16 +589,29 @@ def run_session(client, client_addr):
     spinner = TerminalThrobber(userchan, target_server_account)
     spinner.start()
 
+    #ssh or telnet
+    if target_server_account.protocol == 'ssh':
+        return handle_ssh_connection(
+            target_server_account, sshgw, remote_host, userchan, spinner)
+    elif target_server_account.protocol == 'ssh and telnet':
+        pass
+    else: #telnet
+        pass
+        #return handle_telnet_connection(
+        #    target_server_account, sshgw, remote_host, userchan, spinner
+        #)
+
+def handle_ssh_connection(server_account, sshgw, remote_host, userchan, spinner):
     # Connect to the app
     app = paramiko.SSHClient()
     app.set_missing_host_key_policy(IgnoreHostKeyPolicy())
 
     try:
-        target_server = target_server_account.server
+        target_server = server_account.server
         server_host = target_server.server_ip
         server_port = target_server.sshv2_port or 22
-        username = target_server_account.username
-        password = target_server_account.password
+        username = server_account.username
+        password = server_account.password
         app.connect(
             hostname=server_host, port=server_port,
             username=username, password=password, timeout=10,
@@ -613,7 +620,7 @@ def run_session(client, client_addr):
         spinner.stop("error!")
         logger.error('Failed to connect to %s: %s' %  (server_host, str(e)))
         send_message(userchan, 'Failed to connect to %s: %s'%(
-            target_server_account, e))
+            server_account, e))
         time.sleep(3)
         cleanup(userchan, app)
         return 1
@@ -632,7 +639,7 @@ def run_session(client, client_addr):
         userchan.paired_interactive_session = appchan
         remote_username = sshgw.remote_credentials[0]
         session_logger = InteractiveLogger(sshgw, remote_host,
-                                           target_server_account)
+                                           server_account)
 
     elif userchan.requested_action == 'execute':
         appchan = app.get_transport().open_session()
@@ -644,26 +651,25 @@ def run_session(client, client_addr):
                                                  userchan.user_command)
         else:
             session_logger = InteractiveLogger(sshgw, remote_host,
-                                               target_server_account,
+                                               server_account,
                                                userchan.user_command)
     else:
-        logger.warn('Unknown or unset action for userchannel: %s, aborting'%userchan.requested_action)
+        action = userchan.requested_action
+        logger.warn(
+            'Unknown or unset action for userchannel: %s, aborting'%action)
         cleanup(userchan, app)
         return 1
 
     copy_bidirectional_blocking(userchan, appchan, session_logger,
-                                target_server_account.apply_acl)
+                                server_account.apply_acl)
     session_logger.finish_up()
-
     send_message(userchan, 'Terminating session ...')
 
     # This could block indefinitely if the app never sends a return code
     # and doesn't tear down the connection... ignore for now
     rc = appchan.recv_exit_status()
-
     logger.debug('Shutting down session with exit code %d' % rc)
     userchan.send_exit_status(rc)
-
     cleanup(userchan, app)
     return 0
 

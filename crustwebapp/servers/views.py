@@ -41,7 +41,7 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
             )
 
         for key,val in self.request.query_params.iteritems():
-            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+            if key in ['page', 'page_size', 'ordering', 'search_filter', 'hint']:
                 continue
 
             queryset = queryset.filter(**{key:val})
@@ -128,7 +128,7 @@ class ServersViewSet(viewsets.ModelViewSet):
             )
 
         for key,val in self.request.query_params.iteritems():
-            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+            if key in ['page', 'page_size', 'ordering', 'search_filter', 'hint']:
                 continue
             queryset = queryset.filter(**{key:val})
 
@@ -214,7 +214,7 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
             )
 
         for key,val in self.request.query_params.iteritems():
-            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+            if key in ['page', 'page_size', 'ordering', 'search_filter', 'hint']:
                 continue
             queryset = queryset.filter(**{key:val})
 

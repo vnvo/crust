@@ -29,7 +29,7 @@ class CrustCLISessionViewSet(viewsets.ModelViewSet):
             )
 
         for key,val in self.request.query_params.iteritems():
-            if key in ['page', 'page_size', 'ordering', 'search_filter']:
+            if key in ['page', 'page_size', 'ordering', 'search_filter', 'active']:
                 continue
 
             queryset = queryset.filter(**{key:val})

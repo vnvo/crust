@@ -47,7 +47,7 @@
          * @param {Object} options Options for displaying the snackbar
          * @memberOf crust.utils.services.Snackbar
          */
-        function error(content, options={}) {
+        function error(content, options) {
             options.timeout = 7000;
             options.style='error-message';
             if(options.errors){

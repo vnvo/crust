@@ -10,6 +10,8 @@ from db_utils import get_acls_by_remote_user
 from db_utils import get_server_groups_for_user
 from db_utils import get_servers_by_group
 from db_utils import get_server_accounts_by_server
+import pprint
+import traceback
 
 class FocusableText(urwid.WidgetWrap):
     """Selectable Text and meta data to hold server info"""
@@ -25,6 +27,9 @@ class FocusableText(urwid.WidgetWrap):
 
     def keypress(self, size, key):
         return key
+
+    def __repr__(self):
+        return '%s: %s'%(self.text, self.metadata)
 
 def unhandled_input(k):
     #exit on q
@@ -76,7 +81,10 @@ def create_server_group_tree(user_obj):
 
     node_group = (Text('Server Groups'), sg_nodes)
     #tree[1].append(node_group)
-    return [node_group]
+    print 'server-group-tree: '
+    pprint.pprint( node_group )
+    tree[1].append(node_group)
+    return tree
 
 def create_server_tree(user_obj, server_group):
     print 'create server tree'
@@ -94,8 +102,10 @@ def create_server_tree(user_obj, server_group):
 
     node_group = (Text('Servers'), s_nodes)
     #tree[1].append(node_group)
-    print node_group
-    return [node_group]
+    print 'server-tree: '
+    pprint.pprint( node_group )
+    tree[1].append(node_group)
+    return tree
 
 def create_server_account_tree(user_obj, server):
     print 'create server account tree'
@@ -113,8 +123,10 @@ def create_server_account_tree(user_obj, server):
 
     node_group = (Text('Server Accounts'), sa_nodes)
     #tree[1].append(node_group)
-    print node_group
-    return [node_group]
+    print 'server-account-tree'
+    pprint.pprint(node_group)
+    tree[1].append(node_group)
+    return tree
 
 
 
@@ -168,15 +180,25 @@ class ShellBoxMenu(object):
         self.selected_server = None
         self.selected = None
         self.current_level = 'server-group'
-        self.root_node = [FocusableText('Crust Shell'), []]
-        stree = SimpleTree([self.root_node])
-        atree = ArrowTree(stree)
-        self.treebox = TreeBox(atree)
+        #self.root_node = [FocusableText('Crust Shell'), []]
+        #stree = SimpleTree([self.root_node])
+        #atree = ArrowTree(stree)
+        #self.treebox = TreeBox(atree)
         #stree = SimpleTree([create_server_tree(self.user_obj)])
         #atree = ArrowTree(stree)
         #self.treebox = TreeBox(atree)
-        self._setup_tree()
+        #self.rootwidget = urwid.AttrMap(self.treebox, 'body')
+        #####
+        new_tree = self._create_level_tree() #[0]
+
+        self.root_node = new_tree
+        stree = SimpleTree([self.root_node])
+        atree = ArrowTree(stree)
+        self.treebox = TreeBox(atree)
         self.rootwidget = urwid.AttrMap(self.treebox, 'body')
+        ####
+
+        #self._setup_tree()
         self.ui = None
         self.size = None
         self.header_text = '%s@%s Access List'%(
@@ -191,23 +213,46 @@ class ShellBoxMenu(object):
             self.user_obj, self.remote_host))
 
     def _setup_tree(self):
-        #self.root_node = None
-        self.logger.info('setup tree called ........%s'%self.current_level)
-        if self.root_node[1]:
-            self.root_node[1].pop()
+        #print self.root_node, self.current_level
+        print '================== Setup Tree ========================='
 
-        self.root_node[1].append( self._create_level_tree()[0] )
+        new_tree = self._create_level_tree()
+
+        self.root_node = new_tree
+        stree = SimpleTree([self.root_node])
+        atree = ArrowTree(stree)
+        #print dir(self.treebox)
+        self.treebox = TreeBox(atree)
+
+        #####################
+        #self.root_node = None
+        #self.logger.info('setup tree called ........%s'%self.current_level)
+        #if self.root_node[1]:
+        #    print 'pop root_node[1]'
+        #    self.root_node[1].pop()
+
+        #self.root_node[1].append( self._create_level_tree()[0] )
         self.logger.info('after tree setup ... %s'%str(self.root_node))
-        #self.rootwidget = urwid.AttrMap(self.treebox, 'body')
+        self.rootwidget = urwid.AttrMap(self.treebox, 'body')
+        #self.rootwidget.set_attr_map({self.treebox:'body'})
+        #print dir(self.rootwidget)
+        self.view.set_body(self.rootwidget)
+        self.view.render(size=self.size)
         self.treebox.refresh()
-        self.logger.info('after treebox refresh')
+        self.treebox.focus_parent()
+        print 'after treebox refresh'
+        print '================ End Setup Tree ======================'
 
     def _create_level_tree(self):
+        self.logger.info('create level tree: %s'%self.current_level)
         if self.current_level == 'server-group':
+            self.logger.info('level server-group: %s'%self.user_obj)
             return create_server_group_tree(self.user_obj)
         elif self.current_level == 'server':
+            self.logger.info('level server: %s - %s '%(self.user_obj, self.selected_server_group))
             return create_server_tree(self.user_obj, self.selected_server_group)
         else:
+            self.logger.info('level server-account: %s - %s'%(self.user_obj, self.selected_server))
             return create_server_account_tree(self.user_obj, self.selected_server)
 
 
@@ -237,13 +282,17 @@ class ShellBoxMenu(object):
             self.size = self.ui.get_cols_rows()
             self.logger.info('Shell Menu, run size=%s'%str(self.size))
             while True:
+                print '============ In Loop ==========='
+                pprint.pprint(self.root_node)
+                print '============  ==================  ============'
                 try:
                     current_focus = self.treebox.get_focus()
                 except Exception as e:
-                    self.logger.info(str(e))
-                    self._setup_tree()
+                    print 'error ------>  %s'%e
+                    self.logger.info(traceback.format_exc())
+                    #self._setup_tree()
                     break #continue
-
+                self.logger.info('%s'%str(current_focus))
                 self.logger.info(current_focus[0].get_focus().text)
                 header_focus_name = ''
                 try:

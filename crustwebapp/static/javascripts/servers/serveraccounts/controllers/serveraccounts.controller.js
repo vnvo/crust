@@ -169,7 +169,8 @@
                 {field: 'username', displayName: 'Username', width: 100},
                 {field: 'protocol', displayName: 'Protocol', width: 100},
                 {field: 'server.server_name', displayName: 'Server', width: 150},
-                {field: 'sshv2_private_key', displayName: 'SSHv2 P-Key', width: 250},
+                {field: 'assigned_server_groups', displayName: 'Server Groups',
+                 width: 250},
                 {field: 'is_locked', displayName: 'Is Locked', width: 80,
                  cellTemplate: '/static/templates/servers/serveraccounts/grid_cell.is_locked.templ.html'
                 },

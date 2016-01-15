@@ -92,6 +92,14 @@ class ServerAccount(models.Model):
             )
         return '%s://%s'%(self.protocol, self.username)
 
+    @property
+    def get_assigned_server_groups(self):
+        sga_list = []
+
+        for sga in self.servergroupaccount_set.all():
+            sga_list.append(sga.server_group.group_name)
+        return ', '.join(sga_list)
+
     def __repr__(self):
         return self.__unicode__()
 

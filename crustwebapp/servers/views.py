@@ -229,7 +229,6 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         data = request.data
-        print data
         assign_mode = data['assign_mode']
         server_obj = None
         if assign_mode=='server':
@@ -241,9 +240,7 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
                 ServerGroup.objects.get(id=item['id'])
                 for item in server_groups
             ]
-            print server_groups
 
-        print data
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             if assign_mode == 'server':
@@ -251,7 +248,6 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
             else:
                 serializer.save()
                 account_id = serializer.data['id']
-                print account_id
                 sa = ServerAccount.objects.get(id=account_id)
                 for sg in server_groups:
                     sga = ServerGroupAccount(server_account=sa, server_group=sg)
@@ -265,18 +261,32 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
     def update(self, request, pk):
         serveraccount_obj = ServerAccount.objects.get(id=pk)
         data = request.data
+        assign_mode = data['assign_mode']
         server_obj = None
-        if data.has_key('server'):
+        if assign_mode=='server':
             server_data = data.pop('server')
             server_obj = Server.objects.get(id=server_data['id'])
+        else:
+            server_groups = data.pop('server_groups')
+            server_groups = [
+                ServerGroup.objects.get(id=item['id'])
+                for item in server_groups]
 
         serializer = self.serializer_class(serveraccount_obj, data=data)
 
         if serializer.is_valid():
-            if server_obj:
+            if assign_mode=='server':
                 serializer.save(server=server_obj)
             else:
                 serializer.save()
+                ServerGroupAccount.objects.filter(
+                    server_account=serveraccount_obj).delete()
+                for sg in server_groups:
+                    sga = ServerGroupAccount(server_account=serveraccount_obj,
+                                             server_group=sg)
+                    sga.save()
+
+
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:

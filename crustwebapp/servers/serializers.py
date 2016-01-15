@@ -55,6 +55,9 @@ class ServerAccountSerializer(serializers.ModelSerializer):
     """
     @todo: fix the default value to something meaningfull and reliable
     """
+    assigned_server_groups = serializers.CharField(
+        source='get_assigned_server_groups', read_only=True, required=False)
+
     server = ServerSerializer(read_only=True, required=False)
     server_account_repr = serializers.CharField(
         source='get_server_account_repr', required=False, read_only=True)
@@ -64,10 +67,11 @@ class ServerAccountSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'server', 'username', 'password',
             'protocol', 'sshv2_private_key', 'comment',
-            'is_locked', 'server_account_repr'
+            'is_locked', 'server_account_repr', 'assigned_server_groups'
         )
 
-        read_only_fields = ('id', 'server_account_repr', 'server')
+        read_only_fields = ('id', 'server_account_repr', 'server',
+                            'assigned_server_groups')
 
     def get_validation_exclusions(self, *args, **kwargs):
         exclusions = super(ServerAccountSerializer, self).get_validation_exclusions()
@@ -79,6 +83,9 @@ class ServerAccountSerializer(serializers.ModelSerializer):
         return serveraccount
 
 class ServerGroupAccountSerializer(serializers.ModelSerializer):
+    server_account = ServerAccountSerializer(read_only=True, required=False)
+    server_group = ServerGroupSerializer(read_only=True, required=False)
+
     class Meta:
         model = ServerGroupAccount
         fields = ('server_account', 'server_group')

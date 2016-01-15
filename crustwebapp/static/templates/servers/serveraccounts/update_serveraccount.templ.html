@@ -1,6 +1,49 @@
 <br/>
 <form role="form" ng-submit="vm.update()" class="form-horizontal">
+
     <div class="form-group">
+        <label for="account_mode" class="control-label col-xs-4">Assign Mode</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn" title="Assign To Server Group">
+                <input type="radio" data-ng-model="vm.assign_mode" value="server-group">
+                <i class="fa fa-sitemap fa-lg"></i> Assign To Group
+            </label>
+            <label class="radio-inline btn" title="Assign To Server">
+                <input type="radio" data-ng-model="vm.assign_mode" value="server">
+                <i class="fa fa-server fa-lg"></i> Assign To Server
+            </label>
+        </div>
+    </div>
+
+    <!-- Select Server Group -->
+    <div class="form-group" ng-show="vm.assign_mode === 'server-group'">
+        <label for="serveraccount__server_group" class="control-label col-xs-4">Server Group</label>
+        <div class="col-xs-7">
+            <input type="text" class="form-control" id="serveraccount__server_group"
+                   autocomplete="off" data-ng-model="vm.assign_server_group"
+                   typeahead="item as item.group_name for item in vm.getServerGroupsSuggestion($viewValue)"
+                   typeahead-wait-ms=1000 typeahead-editable=false
+                   typeahead-loading="loadingServerGroups"
+                   typeahead-on-select="onServerGroupSelect($item, $model, $label)"
+                   />
+            <i ng-show="loadingServerGroups" class="fa fa-spinner fa-spin"></i>
+        </div>
+
+        <div class="col-xs-7" style="margin:15px;text-align:left;float:right;">
+            <div ng-repeat="sg in selected_server_groups">
+                <span>
+                    <button class="btn btn-danger btn-xs" title="Remove From List"
+                            ng-click="removeSG($index)">
+                        <i class="fa fa-trash-o fa-xs"></i>
+                    </button>
+                </span>
+                <span style="font-weight:bold;">{{sg.group_name}}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Select Server -->
+    <div class="form-group" ng-show="vm.assign_mode=='server'">
         <label for="serveraccount__server" class="control-label col-xs-4">Server</label>
         <div class="col-xs-7">
             <input type="text" class="form-control" id="serveraccount__server"

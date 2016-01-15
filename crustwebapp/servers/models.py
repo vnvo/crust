@@ -62,7 +62,7 @@ class ServerAccount(models.Model):
     @name ServerAccount
     @desc To define a way to connect to specified Server
     '''
-    server = models.ForeignKey(Server)
+    server = models.ForeignKey(Server, blank=True, null=True)
     username = models.CharField(max_length=256)
     password = models.CharField(max_length=256, blank=True)
 
@@ -72,8 +72,8 @@ class ServerAccount(models.Model):
     is_locked = models.BooleanField(default=False)
     comment = models.TextField(blank=True, default='')
 
-    class Meta:
-        unique_together = ('server', 'username', 'protocol')
+    #class Meta:
+    #    unique_together = ('server', 'username', 'protocol')
 
     def __unicode__(self):
         return '%s://%s@%s'%(
@@ -84,11 +84,20 @@ class ServerAccount(models.Model):
 
     @property
     def get_server_account_repr(self):
-        return '%s://%s@%s'%(
-            self.protocol,
-            self.username,
-            self.server.server_name
-        )
+        if self.server:
+            return '%s://%s@%s'%(
+                self.protocol,
+                self.username,
+                self.server.server_name
+            )
+        return '%s://%s'%(self.protocol, self.username)
 
     def __repr__(self):
         return self.__unicode__()
+
+class ServerGroupAccount(models.Model):
+    server_account = models.ForeignKey(ServerAccount)
+    server_group = models.ForeignKey(ServerGroup)
+
+    def __unicode__(self):
+        return '%s -> %s'%(self.server_account.username, self.server_group.group_name)

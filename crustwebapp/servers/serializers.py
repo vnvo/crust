@@ -3,6 +3,8 @@ from authentication.serializers import SupervisorSerializer
 from servers.models import ServerGroup
 from servers.models import Server
 from servers.models import ServerAccount
+from servers.models import ServerGroupAccount
+
 
 class ServerGroupSerializer(serializers.ModelSerializer):
     server_count = serializers.IntegerField(
@@ -75,3 +77,17 @@ class ServerAccountSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         serveraccount = ServerAccount.objects.create(**validated_data)
         return serveraccount
+
+class ServerGroupAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServerGroupAccount
+        fields = ('server_account', 'server_group')
+
+    def get_validation_exclusions(self, *args, **kwargs):
+        exclusions = super(ServerGroupAccountSerializer, self).get_validation_exclusions()
+        print "checking exclusions ..."
+        return exclusions + ['server_group', 'server_account']
+
+    def create(self, validated_data):
+        sgaccount = ServerGroupAccount.objects.create(**validated_data)
+        return sgaccount

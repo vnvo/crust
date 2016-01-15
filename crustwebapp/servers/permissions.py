@@ -23,7 +23,9 @@ class IsAdminOrServerAccountOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, serveraccount_obj):
         if request.user.is_admin:
             return True
-        if serveraccount_obj.server.server_group.supervisor == request.user:
-            return True
+
+        if serveraccount_obj.server:
+            if serveraccount_obj.server.server_group.supervisor == request.user:
+                return True
 
         return False

@@ -15,7 +15,13 @@
             count: getCount,
             create: createServerAccount,
             update: updateServerAccount,
-            delete: deleteServerAccount
+            delete: deleteServerAccount,
+
+            //Server Group Account API
+            getAccountGroups: getServerGroupsForAccount,
+            delAccountGroups: delServerGroupsForAccount,
+            addAccountGroups: addServerGroupsForAccount
+
         };
         return ServerAccounts;
 
@@ -56,6 +62,25 @@
         function deleteServerAccount(serveraccount_id){
             return $http.delete('/api/v1/serveraccounts/'+serveraccount_id+'/');
         }
+
+
+        //////////////
+        function getServerGroupsForAccount(server_account_id){
+            return $http.get('/api/v1/servergroupaccounts/',
+                             {params: {server_account_id:server_account_id}});
+        }
+
+        function delServerGroupsForAccount(server_group_account_id){
+            return $http.delete('/api/v1/servergroupaccounts/'+server_group_account_id+'/');
+        }
+
+        function addServerGroupsForAccount(server_account, server_group){
+            return $http.post(
+                '/api/v1/servergroupaccount/',
+                {server_account:server_account, server_group:server_group}
+            );
+        }
+
     }
 
 })();

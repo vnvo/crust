@@ -65,7 +65,7 @@ class ServerAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServerAccount
         fields = (
-            'id', 'server', 'username', 'password',
+            'id', 'server', 'username', 'password', 'password_mode',
             'protocol', 'sshv2_private_key', 'comment',
             'is_locked', 'server_account_repr', 'assigned_server_groups'
         )

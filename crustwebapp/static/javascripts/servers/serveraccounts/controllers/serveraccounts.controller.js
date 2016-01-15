@@ -167,14 +167,15 @@
                 },
                 {field: 'id', displayName: 'ID', width: 35},
                 {field: 'username', displayName: 'Username', width: 100},
-                {field: 'protocol', displayName: 'Protocol', width: 100},
-                {field: 'server.server_name', displayName: 'Server', width: 150},
+                {field: 'protocol', displayName: 'Protocol', width: 70},
+                {field: 'password_mode', displayName: 'Pass Mode', width: 90},
+                {field: 'server.server_name', displayName: 'Server', width: 130},
                 {field: 'assigned_server_groups', displayName: 'Server Groups',
-                 width: 250},
+                 width: 240},
                 {field: 'is_locked', displayName: 'Is Locked', width: 80,
                  cellTemplate: '/static/templates/servers/serveraccounts/grid_cell.is_locked.templ.html'
                 },
-                {field: 'comment', displayName: 'Comment', width: 175},
+                {field: 'comment', displayName: 'Comment', width: 150},
                 {field: '', displayName: 'Actions',
                  cellTemplate: '/static/templates/servers/serveraccounts/grid_cell.actions.templ.html'
                 }

@@ -47,6 +47,7 @@ class TerminalThrobber(threading.Thread):
         if self.channel.requested_action != 'interactive':
             return
 
+        self.channel.send('====================================================================\r\n')
         self.channel.send("\r\nConnecting to %s ...  "%self.host)
         throbber = ['|', '/', '-', '\\']
         count = 0
@@ -754,7 +755,8 @@ def handle_ssh_connection(server_account, sshgw, remote_host, userchan, spinner)
         server_port = target_server.sshv2_port or 22
         username = server_account.username
         password = server_account.password
-        if not password:
+        print 'account pass mode: ', server_account.password_mode
+        if server_account.password_mode=='ask user':
             print 'asking for pass'
             user_pass = ask_for_pass(userchan, username, server_host)
             print 'asked for pass: ', user_pass

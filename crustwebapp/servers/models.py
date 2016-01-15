@@ -65,7 +65,7 @@ class ServerAccount(models.Model):
     server = models.ForeignKey(Server, blank=True, null=True)
     username = models.CharField(max_length=256)
     password = models.CharField(max_length=256, blank=True)
-
+    password_mode = models.CharField(max_length=128, default='local')
     protocol = models.CharField(max_length=64)
     sshv2_private_key = models.TextField(blank=True)
 

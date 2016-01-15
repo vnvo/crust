@@ -21,7 +21,9 @@
 
         vm.assign_server_group = null;
         vm.assign_mode='server';
+        vm.password_mode = 'local';
         $scope.protocol_data = ['ssh', 'telnet'];
+        $scope.password_modes = ['local', 'ask user'];
         vm.getServersSuggestion = getServersSuggestion;
         vm.getServerGroupsSuggestion = getServerGroupsSuggestion;
 
@@ -72,6 +74,7 @@
                 var sa_data = data.data;
                 vm.serveraccount_id = sa_data.id;
                 vm.username = sa_data.username;
+                vm.password_mode = sa_data.password_mode;
                 vm.server = sa_data.server;
                 vm.protocol = sa_data.protocol;
                 vm.sshv2_private_key = sa_data.sshv2_private_key;
@@ -115,7 +118,7 @@
                 {username: vm.username, password: vm.password, assign_mode:vm.assign_mode,
                  confirm_password: vm.confirm_password, is_locked: vm.is_locked,
                  comment: vm.comment, sshv2_private_key: vm.ssh2_private_key,
-                 server: vm.server, protocol: vm.protocol,
+                 server: vm.server, protocol: vm.protocol, password_mode:vm.password_mode,
                  server_groups:$scope.selected_server_groups
                 }
             ).then(updateSASuccess, updateSAError);

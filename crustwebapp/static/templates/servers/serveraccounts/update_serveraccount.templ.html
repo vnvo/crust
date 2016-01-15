@@ -86,6 +86,16 @@
                    data-ng-model="vm.confirm_password" type="password" />
         </div>
     </div>
+
+    <div class="form-group">
+        <label for="serveraccount__password_mode" class="control-label col-xs-4">Password Mode</label>
+        <div class="col-xs-7">
+            <select ng-model="vm.password_mode" ng-options="item for item in password_modes track by item">
+                <option value="">- Password Mode -</option>
+            </select>
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="serveraccount__is_locked" class="control-label col-xs-4">Is Locked</label>
         <div class="col-xs-7">

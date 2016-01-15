@@ -271,9 +271,11 @@ class ShellBoxMenu(object):
             return self.selected
 
         except Exception as e:
+            print e
             self.logger.exception('Shell Box Menu, main:')
             return None
 
+        self.logger.info('Main loop exiting.')
 
     def run(self):
         try:
@@ -284,7 +286,6 @@ class ShellBoxMenu(object):
             while True:
                 print '============ In Loop ==========='
                 pprint.pprint(self.root_node)
-                print '============  ==================  ============'
                 try:
                     current_focus = self.treebox.get_focus()
                 except Exception as e:
@@ -292,6 +293,7 @@ class ShellBoxMenu(object):
                     self.logger.info(traceback.format_exc())
                     #self._setup_tree()
                     break #continue
+
                 self.logger.info('%s'%str(current_focus))
                 self.logger.info(current_focus[0].get_focus().text)
                 header_focus_name = ''
@@ -364,8 +366,8 @@ class ShellBoxMenu(object):
 
                             self._setup_tree()
 
-
-        except:# Exception as e:
+        except Exception as e:
+            print e
             self.logger.exception('Shell Menu, run:')
             #raise
 

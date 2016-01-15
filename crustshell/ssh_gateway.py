@@ -6,6 +6,7 @@ import threading
 import traceback
 import select
 import paramiko
+import telnetlib
 import Crypto.Random
 import logging
 import logging.handlers
@@ -69,6 +70,7 @@ class SSHGateway (paramiko.ServerInterface):
         self.remote_addr = IPAddress(remote_addr)
         self.user = None
         self.tty_size = None
+        self.ignore_resize = True
 
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
@@ -145,13 +147,20 @@ class SSHGateway (paramiko.ServerInterface):
 
     def check_channel_window_change_request(self, channel, width,
                                             height, pixelwidth, pixelheight):
-        if channel.paired_interactive_session and \
-           channel.paired_interactive_session.active:
-            logger.debug('Handled a resize request, new resolution: %ix%i' % (
-                width,
-                height))
-            channel.paired_interactive_session.resize_pty(width, height)
-            self.tty_size = (width, height)
+        print '=== window change request ====='
+        if self.ignore_resize:
+            return
+        try:
+
+            if channel.paired_interactive_session and \
+               channel.paired_interactive_session.active:
+                logger.debug('Handled a resize request, new resolution: %ix%i' % (
+                    width,
+                    height))
+                channel.paired_interactive_session.resize_pty(width, height)
+                self.tty_size = (width, height)
+        except:
+            logger.exception()
 
 def create_user_log_dirs(username):
     """
@@ -524,30 +533,6 @@ def cleanup(userchan, app):
     if app:
         app.close()
 
-def get_tty_fg():
-    # make a new process group within the same session as the parent. we
-    # do this so that if the user hits ctrl-c, etc in the curses program
-    # that's about to be exec'd, the SIGINT and friends won't be sent to
-    # the parent.
-    os.setpgrp()
-    import signal
-    # don't stop the process when we get SIGTTOU. since this is now in a
-    # background process group, SIGTTOU will be sent to this process when
-    # we call tcsetpgrp(), below. the default action when receiving that
-    # signal is to stop (process mode T).
-    hdlr = signal.signal(signal.SIGTTOU, signal.SIG_IGN)
-
-    # open a file handle to the current tty
-    tty = os.open('/dev/tty', os.O_RDWR)
-
-    # ask for our new process group to be the foreground one on the
-    # controlling tty.
-    os.tcsetpgrp(tty, os.getpgrp())
-
-    # replace the old signal handler to minimize the chance of the child
-    # getting confused by a non-standard starting signal table.
-    signal.signal(signal.SIGTTOU, hdlr)
-
 
 def run_session(client, client_addr):
     user = paramiko.Transport(client)
@@ -576,9 +561,16 @@ def run_session(client, client_addr):
         logger.warn('Client never asked for a shell or sftp.')
         sys.exit(1)
 
-    target_server_account = ShellBoxMenu(
-        userchan, sshgw.user, remote_host, logger
-    ).main()
+    try:
+        sshgw.ignore_resize = True
+        target_server_account = ShellBoxMenu(
+            userchan, sshgw.user, remote_host, logger
+        ).main()
+    except Exception as e:
+        print e
+        raise
+
+    sshgw.ignore_resize = False
 
     logger.info('Selected: %s'%target_server_account)
     if not target_server_account:
@@ -600,6 +592,64 @@ def run_session(client, client_addr):
         #return handle_telnet_connection(
         #    target_server_account, sshgw, remote_host, userchan, spinner
         #)
+
+def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinner):
+    target_server = server_account.server
+    server_host = target_server.server_ip
+    server_port = target_server.telnet_port or 23
+    username = server_account.username
+    password = server_account.password
+
+    tc = telnetlib.Telnet(host=server_host, port=server_port)
+
+    def handle_auth():
+        index, match_obj, text = tc.expect(
+            ['[U|u]sername:', '[L|l]ogin:', '[L|l]oginname', '[P|p]assword'])
+        if index == 3: #asking for password
+            tc.write('%s\n'%password)
+            return 'done'
+
+        else: #asking for username
+            tc.write('%s\n'%username)
+            return 'continue'
+
+    def handle_shell():
+        index, match_obj, text = tc.expect(
+            ['%', '$', '#', '[I|i]ncorrect', '[E|e]rror']
+        )
+        if index >= 3:
+            return 'failed'
+
+        return 'done'
+
+    while True:
+        status = handle_auth()
+        if status == 'done':
+            status = handle_shell()
+            if status == 'done':
+                break
+            else:
+                send_message(userchan, 'Failed to connect to %s: %s'%(
+                    server_account, 'Auth Failed'))
+                cleanup(userchan, tc.get_socket())
+                return 1
+        else:
+            send_message(userchan, 'Failed to connect to %s: %s'%(
+                server_account, 'Auth Failed'))
+            cleanup(userchan, tc.get_socket())
+            return 1
+
+    ### We have access to shell
+    copy_bidirectional_blocking(userchan, appchan, session_logger,
+                                server_account.apply_acl)
+    #session_logger.finish_up()
+    send_message(userchan, 'Terminating session ...')
+    logger.debug('Shutting down session with exit code %d' % rc)
+    userchan.send_exit_status(rc)
+    cleanup(userchan, app)
+
+    return 0
+
 
 def handle_ssh_connection(server_account, sshgw, remote_host, userchan, spinner):
     # Connect to the app

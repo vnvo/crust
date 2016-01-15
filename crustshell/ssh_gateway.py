@@ -585,13 +585,13 @@ def run_session(client, client_addr):
     if target_server_account.protocol == 'ssh':
         return handle_ssh_connection(
             target_server_account, sshgw, remote_host, userchan, spinner)
-    elif target_server_account.protocol == 'ssh and telnet':
-        pass
+    #elif target_server_account.protocol == 'ssh and telnet':
+    #    pass
     else: #telnet
-        pass
-        #return handle_telnet_connection(
-        #    target_server_account, sshgw, remote_host, userchan, spinner
-        #)
+        print '============== handle telnet connection ==============='
+        return handle_telnet_connection(
+            target_server_account, sshgw, remote_host, userchan, spinner
+        )
 
 def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinner):
     target_server = server_account.server
@@ -603,20 +603,30 @@ def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinn
     tc = telnetlib.Telnet(host=server_host, port=server_port)
 
     def handle_auth():
+        print 'handle_auth ...'
         index, match_obj, text = tc.expect(
-            ['[U|u]sername:', '[L|l]ogin:', '[L|l]oginname', '[P|p]assword'])
+            ['[U|u]sername: ', '[L|l]ogin:', '[L|l]oginname', '[P|p]assword'])
+        print '======================================'
+        print index, text
+        print '======================================'
         if index == 3: #asking for password
-            tc.write('%s\n'%password)
+            pass_word = '%s\n'%password
+            tc.write(pass_word.encode('ascii'))
             return 'done'
 
         else: #asking for username
-            tc.write('%s\n'%username)
+            print 'asking for username'
+            user_name = '%s\n'%username.strip()
+            tc.write(user_name.encode('ascii'))
+            print 'username sent ...'
             return 'continue'
 
     def handle_shell():
+    	print 'handle_shell ...'
         index, match_obj, text = tc.expect(
             ['%', '$', '#', '[I|i]ncorrect', '[E|e]rror']
         )
+        print index, text
         if index >= 3:
             return 'failed'
 
@@ -633,23 +643,95 @@ def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinn
                     server_account, 'Auth Failed'))
                 cleanup(userchan, tc.get_socket())
                 return 1
+        elif status == 'continue':
+            continue
+
         else:
             send_message(userchan, 'Failed to connect to %s: %s'%(
                 server_account, 'Auth Failed'))
             cleanup(userchan, tc.get_socket())
             return 1
 
+    spinner.stop("... And We Are Connected.")
+    print 'connected, spinner stopped ...'
     ### We have access to shell
-    copy_bidirectional_blocking(userchan, appchan, session_logger,
-                                server_account.apply_acl)
+    session_logger = InteractiveLogger(sshgw, remote_host,
+                                       server_account,
+                                       None)
+
+    copy_bidirectional_blocking_telnet(userchan, tc.get_socket(),
+                                       session_logger,
+                                       server_account.apply_acl)
     #session_logger.finish_up()
     send_message(userchan, 'Terminating session ...')
-    logger.debug('Shutting down session with exit code %d' % rc)
-    userchan.send_exit_status(rc)
-    cleanup(userchan, app)
+    #logger.debug('Shutting down session with exit code %d' % rc)
+    userchan.send_exit_status(0)
+    cleanup(userchan, tc.get_socket())
 
     return 0
 
+
+def copy_bidirectional_blocking_telnet(client, server, session_logger=None, apply_acl=None):
+    socklist = (client.fileno(), server.fileno())
+
+    channel_closed = False
+    abort = False
+    command_buff = None
+    if session_logger.action_type == 'interactive':
+        command_buff = ''
+
+    print command_buff
+
+    while not abort:
+        #rlist, wlist, elist = select.select(socklist, socklist, socklist, 0.3)
+        rlist, wlist, elist = select.select([client.fileno()], [], [], 0.1)
+        #print 'after select'
+        if channel_closed == True:
+            abort = True
+        try:
+            if rlist:
+                client_data = client.recv(1024)
+                print 'recv client data: "%s"'%client_data, len(client_data)
+                print '\b' in client_data
+
+                print 'command_buff=',command_buff
+                x = '\b' in client_data
+                print 'has backspace=',x
+                print 'data=', client_data, [ord(i) for i in client_data]
+                if command_buff is not None:
+                    for ch in client_data:
+                        if ord(ch) in [8, 127]: #del or backspace
+                            command_buff = command_buff[:-1]
+                        else:
+                            command_buff += ch
+
+                if command_buff is not None and '\r' in client_data: #user has hit the enter
+                    if not check_user_command(command_buff, apply_acl):
+                        print 'deny command: %s'%command_buff
+                        client.sendall('\r\n** You nan not run this command! **\r\n\r\n')
+                        server.sendall('\b'*len(command_buff))
+                    else:
+                        server.sendall(client_data)
+                    command_buff=''
+
+                else:
+                    server.sendall(client_data)
+
+                session_logger.log(client_data)
+
+            srlist, swlist, selist = select.select([server.fileno()], [], [], 0.1)
+            if srlist:
+                server_data = server.recv(1024)
+                print 'recv server data: %s'%server_data
+                client.sendall(server_data)
+                session_logger.log(server_data, True)
+
+
+        except ChannelClosedException:
+            channel_closed = True
+        except Exception as e:
+            print e
+            abort = True
 
 def handle_ssh_connection(server_account, sshgw, remote_host, userchan, spinner):
     # Connect to the app

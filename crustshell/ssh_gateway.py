@@ -595,13 +595,20 @@ def run_session(client, client_addr):
         )
 
 def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinner):
-    spinner.start()
     target_server = server_account.server
     server_host = target_server.server_ip
     server_port = target_server.telnet_port or 23
     username = server_account.username
     password = server_account.password
 
+    print 'account pass mode: ', server_account.password_mode
+    if server_account.password_mode=='ask user':
+        print 'asking for pass'
+        user_pass = ask_for_pass(userchan, username, server_host)
+        print 'asked for pass: ', user_pass
+        password = user_pass
+
+    spinner.start()
     tc = telnetlib.Telnet(host=server_host, port=server_port)
 
     def handle_auth():
@@ -684,7 +691,7 @@ def copy_bidirectional_blocking_telnet(client, server, session_logger=None, appl
 
     print command_buff
 
-    while not abort:
+    while not abort and not channel_closed:
         #rlist, wlist, elist = select.select(socklist, socklist, socklist, 0.3)
         rlist, wlist, elist = select.select([client.fileno()], [], [], 0.1)
         #print 'after select'
@@ -694,7 +701,7 @@ def copy_bidirectional_blocking_telnet(client, server, session_logger=None, appl
             if rlist:
                 client_data = client.recv(1024)
                 print 'recv client data: "%s"'%client_data, len(client_data)
-                print '\b' in client_data
+                #print '\b' in client_data
 
                 print 'command_buff=',command_buff
                 x = '\b' in client_data
@@ -717,16 +724,24 @@ def copy_bidirectional_blocking_telnet(client, server, session_logger=None, appl
                     command_buff=''
 
                 else:
+                    print 'client data to send:', client_data
                     server.sendall(client_data)
 
                 session_logger.log(client_data)
 
             srlist, swlist, selist = select.select([server.fileno()], [], [], 0.1)
+            #print srlist, swlist, selist
             if srlist:
                 server_data = server.recv(1024)
-                print 'recv server data: %s'%server_data
-                client.sendall(server_data)
-                session_logger.log(server_data, True)
+                if not server_data:
+                    print 'server is closed ...'
+                    server.shutdown(socket.SHUT_RDWR) # no more read/write
+                    server.close()
+                    abort = True
+                else:
+                    print 'recv server data: %s'%server_data
+                    client.sendall(server_data)
+                    session_logger.log(server_data, True)
 
         except ChannelClosedException:
             channel_closed = True

@@ -245,7 +245,7 @@ class InteractiveLogger(object):
     def _write_session_event(self, content):
         if self.tty_size != self.sshgw.tty_size:
             self.tty_size = self.sshgw.tty_size
-            self.terminal.resize(self.tty_size[0], self.tty_size[1])
+            self.terminal.resize(self.tty_size[0], self.tty_size[1]*2)
 
         if self.tty_size is None:
             self.tty_size(80,80)
@@ -725,7 +725,6 @@ def copy_bidirectional_blocking_telnet(client, server, session_logger=None, appl
                 print 'recv server data: %s'%server_data
                 client.sendall(server_data)
                 session_logger.log(server_data, True)
-
 
         except ChannelClosedException:
             channel_closed = True

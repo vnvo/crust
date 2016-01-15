@@ -1,5 +1,6 @@
 from django.db import models
 from servers.models import ServerAccount, ServerGroup, Server
+from servers.models import ServerGroupAccount
 from remoteusers.models import RemoteUser
 from commandgroups.models import CommandGroup
 
@@ -127,6 +128,9 @@ class RemoteUserACL(models.Model):
 
         sa_to_acl = {}
 
+        server_group = server.server_group
+        server_group_account = server
+
         for acl in acl_list:
             if acl.server_account:
                 if acl.server_account.server != server:
@@ -147,10 +151,20 @@ class RemoteUserACL(models.Model):
                         sa_to_acl[server_account.id] = acl
             else:
                 sg_servers = acl.server_group.server_set.filter(server_ip=server.server_ip)
+                print sg_servers
                 if sg_servers and acl.acl_action == 'allow':
                     for server_account in sg_servers[0].serveraccount_set.all():
                         allow_list.add(server_account)
                         sa_to_acl[server_account.id] = acl
+
+                #add server group account
+                print 'checking server group accounts', server
+                sga_list = ServerGroupAccount.objects.filter(server_group=server.server_group).all()
+                for sga in sga_list:
+                    print 'adding sga: ', sga
+                    sga.server_account.server = server #dirty and unsafe, fix this.
+                    allow_list.add(sga.server_account)
+                    sa_to_acl[sga.server_account.id] = acl
 
         sa_allow_list = list(allow_list-deny_list)
         sa_allow_list_acl = []
@@ -163,4 +177,5 @@ class RemoteUserACL(models.Model):
 
             sa_allow_list_acl.append(sa)
 
+        print sa_allow_list_acl
         return sa_allow_list_acl

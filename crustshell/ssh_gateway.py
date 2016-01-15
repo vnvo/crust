@@ -579,7 +579,7 @@ def run_session(client, client_addr):
         return 1
 
     spinner = TerminalThrobber(userchan, target_server_account)
-    spinner.start()
+    #spinner.start()
 
     #ssh or telnet
     if target_server_account.protocol == 'ssh':
@@ -594,6 +594,7 @@ def run_session(client, client_addr):
         )
 
 def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinner):
+    spinner.start()
     target_server = server_account.server
     server_host = target_server.server_ip
     server_port = target_server.telnet_port or 23
@@ -732,6 +733,16 @@ def copy_bidirectional_blocking_telnet(client, server, session_logger=None, appl
             print e
             abort = True
 
+def ask_for_pass(userchan, username, server_host):
+    userchan.send('\r\n Enter Your Pass (%s@%s):'%(username, server_host))
+    user_pass = ''
+    while '\n' not in user_pass and '\r' not in user_pass:
+        user_pass += userchan.recv(1024)
+        print user_pass
+
+    return user_pass.strip()
+
+
 def handle_ssh_connection(server_account, sshgw, remote_host, userchan, spinner):
     # Connect to the app
     app = paramiko.SSHClient()
@@ -743,6 +754,14 @@ def handle_ssh_connection(server_account, sshgw, remote_host, userchan, spinner)
         server_port = target_server.sshv2_port or 22
         username = server_account.username
         password = server_account.password
+        if not password:
+            print 'asking for pass'
+            user_pass = ask_for_pass(userchan, username, server_host)
+            print 'asked for pass: ', user_pass
+            password = user_pass
+
+        spinner.start()
+
         app.connect(
             hostname=server_host, port=server_port,
             username=username, password=password, timeout=10,

@@ -10,6 +10,7 @@ from authentication.views import LogoutView
 from servers.views import ServerGroupsViewSet, ServerGroupsCountView
 from servers.views import ServersViewSet, ServersCountView
 from servers.views import ServerAccountsViewSet, ServerAccountsCountView
+from servers.views import ServerGroupAccountsViewSet
 
 from remoteusers.views import RemoteUsersViewSet
 from remoteusers.views import RemoteUsersCountView
@@ -38,6 +39,7 @@ router.register(r'supervisors', SupervisorViewSet, base_name='supervisor')
 router.register(r'servergroups', ServerGroupsViewSet, base_name='servergroup')
 router.register(r'servers', ServersViewSet, base_name='server')
 router.register(r'serveraccounts', ServerAccountsViewSet, base_name='serveraccount')
+router.register(r'servergroupaccounts', ServerGroupAccountsViewSet, base_name='servergroupaccount')
 router.register(r'remoteusers', RemoteUsersViewSet, base_name='remoteuser')
 router.register(r'commandgroups', CommandGroupsViewSet, base_name='commandgroup')
 router.register(r'commandpatterns', CommandPatternsViewSet)

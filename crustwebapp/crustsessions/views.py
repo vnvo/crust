@@ -56,9 +56,17 @@ class CrustSessionEventViewSet(viewsets.ModelViewSet):
     ).all().order_by('event_time')
 
     def list(self, request, crustsession_pk):
+        session_obj = CrustCLISession.objects.get(id=crustsession_pk)
+        print session_obj
+        print request.query_params
         queryset = self.queryset.filter(session__id=crustsession_pk)
+        if request.query_params.has_key('last_event_id'):
+            last_id = int(request.query_params.get('last_event_id'))
+            print last_id
+            queryset = queryset.filter(id__gt=last_id)
+
         serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+        return Response({'events':serializer.data, 'status':session_obj.status})
 
 
 class CrustActiveSessionCountView(views.APIView):

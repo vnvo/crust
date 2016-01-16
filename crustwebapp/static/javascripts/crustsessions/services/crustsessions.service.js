@@ -35,7 +35,6 @@
                              search_filter: searchFilter, ordering:ordering}
                 }
             );
-
         }
 
         function getSession(session_id){
@@ -51,10 +50,10 @@
                 params: {session_id:session_id}});
         }
 
-        function getSessionLogs(session_id, pageSize, page){
+        function getSessionLogs(session_id, pageSize, page, last_event_id){
             return $http.get(
                 '/api/v1/crustsessions/'+session_id+'/log/',
-                {params:{page_size: pageSize, page:page}}
+                {params:{page_size: pageSize, page:page, last_event_epoch:last_event_id}}
             );
         }
     }

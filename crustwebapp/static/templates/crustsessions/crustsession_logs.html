@@ -3,6 +3,25 @@
         <i class="fa fa-play" ng-show="!session_play"></i>
         <i class="fa fa-pause" ng-show="session_play"></i>
     </button>
+    &nbsp;
+    <button ng-click="playback_speed=1"  ng-show="session_play">
+        <i class="fa fa-fast-forward"></i> <strong>1X</strong>
+    </button>
+    &nbsp;
+    <button ng-click="playback_speed=2"  ng-show="session_play">
+        <i class="fa fa-fast-forward"></i> <strong>2X</strong>
+    </button>
+    &nbsp;
+    <button ng-click="playback_speed=4"  ng-show="session_play">
+        <i class="fa fa-fast-forward"></i> <strong>4X</strong>
+    </button>
+
+    <div>
+        Status: {{session_status}}&nbsp;--&nbsp;
+        Event ID: {{current_session_event.id}}&nbsp;--&nbsp;
+        Event Time: {{current_session_event.event_time}}&nbsp;--&nbsp;
+        Speed: {{playback_speed}}X
+    </div>
     <div class="col-xs-12" style="background-color: black; color:white;"
          ng-bind-html="current_session_event.content|nl2br|htmlAllow">
     </div>

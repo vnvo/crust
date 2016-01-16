@@ -231,7 +231,7 @@ class InteractiveLogger(object):
         self.exec_cmd = exec_cmd
         self.output_name = None
         self.output = None
-        self.terminal = Terminal(*self.tty_size)
+        self.terminal = Terminal(self.tty_size[0], self.tty_size[1]*2)
         self.debug_out = open('/tmp/tt.log', 'w')
         self.debug_out.write(css_renditions()+'\n\n\n')
         self.session = None
@@ -371,13 +371,11 @@ def copy_data_from_client(source, drain, copy_stderr, session_logger,
         print x
         print 'data=', data, [ord(i) for i in data]
         if command_buff is not None:
-            #try:
-                if ord(data) in [8, 127]: #del or backspace
+            for ch in data:
+                if ord(ch) in [8, 127]: #del or backspace
                     command_buff = command_buff[:-1]
                 else:
-                    command_buff += data
-            #except:
-            #    pass
+                    command_buff += ch
 
         if command_buff is not None and '\r' in data: #user has hit the enter
             #command_buff += data
@@ -389,8 +387,6 @@ def copy_data_from_client(source, drain, copy_stderr, session_logger,
             command_buff = ''
 
         else:
-            #if command_buff is not None:
-            #    command_buff += data
             drain.sendall(data)
 
         if session_logger: # and session_logger.action_type!='interactive':
@@ -671,7 +667,7 @@ def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinn
     copy_bidirectional_blocking_telnet(userchan, tc.get_socket(),
                                        session_logger,
                                        server_account.apply_acl)
-    #session_logger.finish_up()
+    session_logger.finish_up()
     send_message(userchan, 'Terminating session ...')
     #logger.debug('Shutting down session with exit code %d' % rc)
     userchan.send_exit_status(0)

@@ -13,5 +13,5 @@
         ]);
 
     angular
-        .module('crust.dashboard.controllers', []);
+        .module('crust.dashboard.controllers', ['highcharts-ng']);
 })();

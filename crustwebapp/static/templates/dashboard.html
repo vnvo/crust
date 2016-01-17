@@ -1,123 +1,174 @@
-<div class="row">
+<!-- div class="row">
     <div class="col-lg-12">
         <h1 class="page-header">Dashboard</h1>
     </div>
-    <!-- /.col-lg-12 -->
-</div>
+</div -->
 <!-- /.row -->
+<br>
 <div class="row">
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fa fa-sitemap fa-5x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge">{{vm.servergroup_count}}</div>
-                        <div>Server Groups</div>
-                    </div>
-                </div>
-            </div>
-            <a href="/servergroups">
-                <div class="panel-footer">
-                    <span class="pull-left">View Details</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
-            </a>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-green">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fa fa-server fa-5x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge">{{vm.server_count}}</div>
-                        <div>Servers</div>
-                    </div>
-                </div>
-            </div>
-            <a href="/servers">
-                <div class="panel-footer">
-                    <span class="pull-left">View Details</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
-            </a>
-        </div>
-    </div>
+    <div class="col-xs-12">
 
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-lightblue">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fa fa-android fa-5x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge">{{vm.serveraccount_count}}</div>
-                        <div>Server Accounts</div>
+        <!-- div class="col-xs-12 col-lg-3 col-md-3">
+            <div class="panel panel-red">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-exchange fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{vm.active_remote_session_count}}</div>
+                            <div>Active Sessions</div>
+                        </div>
                     </div>
                 </div>
+                <a href="/crustsessions/active">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
             </div>
-            <a href="/serveraccounts">
-                <div class="panel-footer">
-                    <span class="pull-left">View Details</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
-            </a>
-        </div>
-    </div>
+        </div -->
 
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-yellow">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fa fa-user-plus fa-5x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge">{{vm.remoteuser_count}}</div>
-                        <div>Remote Users</div>
+        <div class="col-xs-12 col-md-3 col-lg-3">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-sitemap fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{vm.servergroup_count}}</div>
+                            <div>Server Groups</div>
+                        </div>
                     </div>
                 </div>
+                <a href="/servergroups">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
             </div>
-            <a href="/remoteusers">
-                <div class="panel-footer">
-                    <span class="pull-left">View Details</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
-            </a>
         </div>
-    </div>
+        <div class="col-xs-12 col-lg-3 col-md-3">
+            <div class="panel panel-green">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-server fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{vm.server_count}}</div>
+                            <div>Servers</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="/servers">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
+            </div>
+        </div>
 
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-red">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fa fa-exchange fa-5x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge">{{vm.active_remote_session_count}}</div>
-                        <div>Active Sessions</div>
+        <div class="col-xs-12 col-lg-3 col-md-3">
+            <div class="panel panel-lightblue">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-android fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{vm.serveraccount_count}}</div>
+                            <div>Server Accounts</div>
+                        </div>
                     </div>
                 </div>
+                <a href="/serveraccounts">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
             </div>
-            <a href="/crustsessions/active">
-                <div class="panel-footer">
-                    <span class="pull-left">View Details</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
-            </a>
         </div>
+
+        <div class="col-xs-12 col-lg-3 col-md-3">
+            <div class="panel panel-yellow">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-user-plus fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{vm.remoteuser_count}}</div>
+                            <div>Remote Users</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="/remoteusers">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
     </div>
 </div>
 <!-- /.row -->
+<br/>
+<div class="row">
+    <div class="col-xs-6">
+        <div class="panel panel-default">
+            <div class="panel-heading text-center">
+                <h4>Active Sessions</h4>
+            </div>
+            <div class="panel-body" ng-show="!vm.active_sessions.length">
+                No Active Session
+            </div>
+            <div class="panel-body" ng-show="vm.active_sessions.length">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Start</th>
+                            <th>IP</th>
+                            <th>Remote User</th>
+                            <th>Server</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="session in vm.active_sessions">
+                            <td>{{session.created_at}}</td>
+                            <td>{{session.client_ip}}</td>
+                            <td>{{session.remoteuser}}</td>
+                            <td>{{session.server}}</td>
+                            <td>
+                                <a class="btn btn-primary" title="View Log"
+                                   ng-href="/crustsessions/{{session.id}}/logs"
+                                   target="blank"><i class="fa fa-eye fa-xs"></i>
+                                </a>
+                                <button class="btn btn-danger" title="Kill Session"
+                                        ng-click="vm.killSession(session.id)"
+                                        ><i class="fa fa-stop fa-xs"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+</div>
+    </div>
+    <div class="col-xs-6">
+        <highchart id="server-groups-server-count" config="serverCountChartConfig" ></highchart>
+    </div>
+</div>

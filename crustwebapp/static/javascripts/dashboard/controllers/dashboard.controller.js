@@ -23,6 +23,37 @@
                                  ServerAccounts, RemoteUsers){
         var vm = this;
 
+        $scope.sg_server_counts = [];
+        $scope.serverCountChartConfig = {
+            options:{
+                chart:{
+                    type:'pie'
+                },
+                tooltip: {
+                    style: {padding:10, fontWeight:'bold'}
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        }
+                    }
+                }
+            },
+            title:{text:'Server Groups, Server Count'},
+            series:[{
+                colorByPoint: true,
+                'name':'Server Count',
+                'data':$scope.sg_server_counts
+
+                //[ ['ali',4],['gholi',17] ]
+            }]
+        };
+
+
         vm.servergroup_count = 'n/a';
         vm.server_count = 'n/a';
         vm.serveraccount_count = 'n/a';
@@ -38,6 +69,8 @@
 
         getNormalSystemStats();
         getFastSystemStats();
+        createServerGroupChart();
+        vm.killSession = killSession;
 
         var timer = $interval(getNormalSystemStats, 120000);
         var fast_timer = $interval(getFastSystemStats, 10000);
@@ -64,21 +97,24 @@
 
 
         function getFastSystemStats(){
-            Snackbar.show('Fetching System Status ... ');
+            //Snackbar.show('Fetching System Status ... ');
+            getActiveSessions();
+        }
 
+
+        function getActiveSessions(){
             // Active Sessions
-            CrustSessions.activeCount().then(
+            CrustSessions.allActive().then(
                 getActiveCountSucccess, getActiveCountError
             );
             function getActiveCountSucccess(data, status, headers, config){
-                vm.active_remote_session_count = data.data.active_count;
+                vm.active_sessions = data.data.results;
+                //console.log(vm.active_sessions);
             }
             function getActiveCountError(data, status, headers, config){
                 Snackbar.error('Can not get Active Sessions Count.');
             }
-
         }
-
 
         /**
          * @name getSystemStats
@@ -129,6 +165,42 @@
             function getRuCountError(data, status, headers, config){
                 Snackbar.error('Can not get Remote Users count.');
             }
+        }
+
+        function createServerGroupChart(){
+            ServerGroups.getServerCount().then(
+                getSGServerCountSuccess, getSGServerCountError
+            );
+            function getSGServerCountSuccess(data, status, headers, config){
+                console.log(data.data.server_counts);
+                $scope.serverCountChartConfig.series[0].data = data.data.server_counts;
+                $scope.$broadcast('highchartsng.reflow');
+            }
+
+            function getSGServerCountError(data, status, headers, config){
+                console.log(data);
+            };
+
+        }
+
+        function killSession(id){
+            if(!confirm('You are killing an Active Session, Are you sure?'))
+                return;
+
+            CrustSessions.kill(id).then(
+                killSuccess, killError
+            );
+            function killSuccess(data, status, headers, config){
+                Snackbar.show('Session Killed Successfuly.');
+                getActiveSessions();
+            }
+            function killError(data, status, headers, config){
+                Snackbar.error(
+                    'Can not Kill Active Session',
+                    {errors: data.data}
+                );
+            }
+
         }
 
     }

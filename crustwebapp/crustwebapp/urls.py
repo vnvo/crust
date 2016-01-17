@@ -10,7 +10,7 @@ from authentication.views import LogoutView
 from servers.views import ServerGroupsViewSet, ServerGroupsCountView
 from servers.views import ServersViewSet, ServersCountView
 from servers.views import ServerAccountsViewSet, ServerAccountsCountView
-from servers.views import ServerGroupAccountsViewSet
+from servers.views import ServerGroupAccountsViewSet, ServerGroupsServerCountView
 
 from remoteusers.views import RemoteUsersViewSet
 from remoteusers.views import RemoteUsersCountView
@@ -69,6 +69,10 @@ urlpatterns = patterns(
     url(r'^api/v1/servergroups/count/$',
         ServerGroupsCountView.as_view(),
         name='servergroups-count'),
+
+    url(r'^api/v1/servergroups/servercounts/$',
+        ServerGroupsServerCountView.as_view(),
+        name='servergroups-servercount'),
 
     url(r'api/v1/servers/count/$',
         ServersCountView.as_view(),

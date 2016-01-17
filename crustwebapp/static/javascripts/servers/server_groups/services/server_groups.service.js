@@ -22,7 +22,8 @@
             create: createServerGroup,
             get: getServerGroup,
             update: updateServerGroup,
-            delete: deleteServerGroup
+            delete: deleteServerGroup,
+            getServerCount:getServerCount
         };
 
         return ServerGroups;
@@ -113,5 +114,11 @@
         function deleteServerGroup(server_group_id){
             return $http.delete('/api/v1/servergroups/'+server_group_id+'/');
         }
+
+
+        function getServerCount(){
+            return $http.get('/api/v1/servergroups/servercounts/');
+        }
+
     }
 })();

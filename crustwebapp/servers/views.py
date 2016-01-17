@@ -101,6 +101,24 @@ class ServerGroupsCountView(views.APIView):
         return Response({'servergroup_count':servergroup_count})
 
 
+class ServerGroupsServerCountView(views.APIView):
+
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), IsAdminOrGroupOwner())
+
+    def get(self, request):
+        if request.user.is_admin:
+            qs = ServerGroup.objects.all()
+        else:
+            qs = ServerGroup.objects.filter(supervisor=request.user)
+
+        sg_server_count = []
+        for item in qs:
+            sg_server_count.append( [item.group_name, item.get_server_count] )
+
+        return Response({'server_counts':sg_server_count})
+
+
 ################# Servers
 class ServersViewSet(viewsets.ModelViewSet):
     #queryset = Server.objects.all()

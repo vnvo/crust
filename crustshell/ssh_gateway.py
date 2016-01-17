@@ -380,7 +380,7 @@ def copy_data_from_client(source, drain, copy_stderr, session_logger,
         if command_buff is not None and '\r' in data: #user has hit the enter
             #command_buff += data
             if not check_user_command(command_buff, apply_acl):
-                source.sendall('\r\n** You nan not run this command! **\r\n')
+                source.sendall('\r\n** You can not run this command! **\r\n')
                 drain.sendall('\b'*len(command_buff))
             else:
                 drain.sendall(data)

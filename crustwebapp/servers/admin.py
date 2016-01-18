@@ -3,3 +3,4 @@ from servers.models import *
 
 
 admin.site.register(ServerGroupAccount)
+admin.site.register(ServerAccountMap)

@@ -1,7 +1,7 @@
 <br/>
 <form role="form" ng-submit="vm.submit()" class="form-horizontal">
 
-    <div class="form-group">
+    <!-- div class="form-group">
         <label for="account_mode" class="control-label col-xs-4">Assign Mode</label>
         <div class="col-xs-7">
             <label class="radio-inline btn" title="Assign To Server Group">
@@ -13,11 +13,11 @@
                 <i class="fa fa-server fa-lg"></i> Assign To Server
             </label>
         </div>
-    </div>
+    </div -->
 
     <!-- Select Server Group -->
-    <div class="form-group" ng-show="vm.assign_mode === 'server-group'">
-        <label for="serveraccount__server_group" class="control-label col-xs-4">Server Group</label>
+    <div class="form-group">
+        <label for="serveraccount__server_group" class="control-label col-xs-4">Assign Server Group</label>
         <div class="col-xs-7">
             <input type="text" class="form-control" id="serveraccount__server_group"
                    autocomplete="off" data-ng-model="vm.assign_server_group"
@@ -43,17 +43,31 @@
     </div>
 
     <!-- Select Server -->
-    <div class="form-group" ng-show="vm.assign_mode=='server'">
-        <label for="serveraccount__server" class="control-label col-xs-4">Server</label>
+    <div class="form-group">
+        <label for="serveraccount__server" class="control-label col-xs-4">Assign Server</label>
         <div class="col-xs-7">
             <input type="text" class="form-control" id="serveraccount__server"
-                   autocomplete="off" data-ng-model="vm.server"
+                   autocomplete="off" data-ng-model="vm.assign_server"
                    typeahead="item as item.server_name for item in vm.getServersSuggestion($viewValue)"
                    typeahead-wait-ms=1000 typeahead-editable=false
                    typeahead-loading="loadingServers"
+                   typeahead-on-select="vm.onServerSelect($item, $model, $label)"
                    />
             <i ng-show="loadingServers" class="fa fa-spinner fa-spin"></i>
         </div>
+
+        <div class="col-xs-7" style="margin:15px;text-align:left;float:right;">
+            <div ng-repeat="s in vm.selected_servers">
+                <span>
+                    <button class="btn btn-danger btn-xs" title="Remove From List"
+                            ng-click="vm.removeServer($index)">
+                        <i class="fa fa-trash-o fa-xs"></i>
+                    </button>
+                </span>
+                <span style="font-weight:bold;">{{s.server_name}}</span>
+            </div>
+        </div>
+
     </div>
 
     <div class="form-group">
@@ -86,6 +100,16 @@
                    data-ng-model="vm.confirm_password" type="password" />
         </div>
     </div>
+
+    <div class="form-group">
+        <label for="serveraccount__password_mode" class="control-label col-xs-4">Password Mode</label>
+        <div class="col-xs-7">
+            <select ng-model="vm.password_mode" ng-options="item for item in password_modes track by item">
+                <option value="">- Password Mode -</option>
+            </select>
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="serveraccount__is_locked" class="control-label col-xs-4">Is Locked</label>
         <div class="col-xs-7">

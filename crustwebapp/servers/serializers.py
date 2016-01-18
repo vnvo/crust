@@ -4,6 +4,7 @@ from servers.models import ServerGroup
 from servers.models import Server
 from servers.models import ServerAccount
 from servers.models import ServerGroupAccount
+from servers.models import ServerAccountMap
 
 
 class ServerGroupSerializer(serializers.ModelSerializer):
@@ -35,11 +36,10 @@ class ServerSerializer(serializers.ModelSerializer):
             'id', 'server_group', 'server_name',
             'server_ip', 'timeout', 'sshv2_port',
             'sshv2_private_key', 'telnet_port',
-            'comment', 'serveraccount_set',
-            'serveraccount_count'
+            'comment', 'serveraccount_count'
         )
 
-        read_only_fields = ('id', 'serveraccount_set', 'serveraccount_count')
+        read_only_fields = ('id', 'serveraccount_count')
 
     def create(self, validated_data):
         server = Server.objects.create(**validated_data)
@@ -58,20 +58,23 @@ class ServerAccountSerializer(serializers.ModelSerializer):
     assigned_server_groups = serializers.CharField(
         source='get_assigned_server_groups', read_only=True, required=False)
 
-    server = ServerSerializer(read_only=True, required=False)
+    assigned_servers = serializers.CharField(
+        source='get_assigned_servers', read_only=True, required=False)
+
+    #server = ServerSerializer(read_only=True, required=False)
     server_account_repr = serializers.CharField(
         source='get_server_account_repr', required=False, read_only=True)
 
     class Meta:
         model = ServerAccount
         fields = (
-            'id', 'server', 'username', 'password', 'password_mode',
+            'id', 'username', 'password', 'password_mode',
             'protocol', 'sshv2_private_key', 'comment',
-            'is_locked', 'server_account_repr', 'assigned_server_groups'
+            'is_locked', 'server_account_repr',
+            'assigned_server_groups', 'assigned_servers'
         )
 
-        read_only_fields = ('id', 'server_account_repr', 'server',
-                            'assigned_server_groups')
+        read_only_fields = ('id', 'server_account_repr', 'assigned_server_groups')
 
     def get_validation_exclusions(self, *args, **kwargs):
         exclusions = super(ServerAccountSerializer, self).get_validation_exclusions()
@@ -98,3 +101,21 @@ class ServerGroupAccountSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         sgaccount = ServerGroupAccount.objects.create(**validated_data)
         return sgaccount
+
+
+class ServerAccountMapSerializer(serializers.ModelSerializer):
+    server_account = ServerAccountSerializer(read_only=True, required=False)
+    server = ServerSerializer(read_only=True, required=False)
+
+    class Meta:
+        model = ServerAccountMap
+        fields = ('server_account', 'server')
+
+    def get_validation_exclusions(self, *args, **kwargs):
+        exclusions = super(ServerAccountMapSerializer, self).get_validation_exclusions()
+        print "checking exclusions ..."
+        return exclusions + ['server', 'server_account']
+
+    def create(self, validated_data):
+        saccount_map = ServerAccountMap.objects.create(**validated_data)
+        return saccount_map

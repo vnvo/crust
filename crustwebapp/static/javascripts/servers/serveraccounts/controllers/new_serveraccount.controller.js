@@ -15,9 +15,13 @@
         var vm = this;
 
         vm.submit = submit;
+        vm.selected_servers = [];
+        vm.assign_server = null;
         $scope.selected_server_groups = [];
         vm.assign_server_group = null;
         vm.assign_mode='server';
+        vm.password_mode = 'local';
+        $scope.password_modes = ['local', 'ask user'];
         $scope.protocol_data = ['ssh', 'telnet'];
         vm.getServersSuggestion = getServersSuggestion;
         vm.getServerGroupsSuggestion = getServerGroupsSuggestion;
@@ -34,7 +38,15 @@
             $scope.selected_server_groups.splice(index, 1);
         };
 
-
+        vm.onServerSelect = function($item, $model, $label){
+            console.log($item);
+            console.log($label);
+            vm.selected_servers.push($item);
+            vm.assign_server = null;
+        };
+        vm.removeServer = function(index){
+            vm.selected_servers.splice(index, 1);
+        };
 
         function getServersSuggestion($viewValue){
             return Servers.getSuggestion($viewValue).then(
@@ -62,15 +74,15 @@
         }
 
         function submit(){
-            console.log(vm.server);
             console.log(vm.assign_mode);
 
             ServerAccounts.create({
                 username: vm.username, password: vm.password,
-                confirm_password: vm.confirm_password, is_locked: vm.is_locked,
-                comment: vm.comment, server: vm.server, protocol: vm.protocol,
-                sshv2_private_key: vm.sshv2_private_key,
-                assign_mode:vm.assign_mode, server_groups:$scope.selected_server_groups
+                password_mode:vm.password_mode, confirm_password: vm.confirm_password,
+                is_locked: vm.is_locked, comment: vm.comment, server: vm.server,
+                protocol: vm.protocol, sshv2_private_key: vm.sshv2_private_key,
+                assign_mode:vm.assign_mode, servers:vm.selected_servers,
+                server_groups:$scope.selected_server_groups
             }).then(submitSuccess, submitError);
 
             function submitSuccess(data, status, headers, config){

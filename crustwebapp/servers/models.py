@@ -18,7 +18,7 @@ class ServerGroup(models.Model):
     def serveraccounts_count(self):
         sa_count = 0
         for s in self.server_set.all():
-            sa_count += s.serveraccount_set.count()
+            sa_count += s.serveraccountmap_set.count()
 
         return sa_count
 
@@ -55,14 +55,14 @@ class Server(models.Model):
 
     @property
     def get_serveraccount_count(self):
-        return self.serveraccount_set.count()
+        return self.serveraccountmap_set.count()
 
 class ServerAccount(models.Model):
     '''
     @name ServerAccount
     @desc To define a way to connect to specified Server
     '''
-    server = models.ForeignKey(Server, blank=True, null=True)
+    #server = models.ForeignKey(Server, blank=True, null=True)
     username = models.CharField(max_length=256)
     password = models.CharField(max_length=256, blank=True)
     password_mode = models.CharField(max_length=128, default='local')
@@ -76,20 +76,20 @@ class ServerAccount(models.Model):
     #    unique_together = ('server', 'username', 'protocol')
 
     def __unicode__(self):
-        return '%s://%s@%s'%(
+        return '%s://%s'%(
             self.protocol,
             self.username,
-            self.server
+            #self.server
         )
 
     @property
     def get_server_account_repr(self):
-        if self.server:
-            return '%s://%s@%s'%(
-                self.protocol,
-                self.username,
-                self.server.server_name
-            )
+        #if self.server:
+        #    return '%s://%s@%s'%(
+        #        self.protocol,
+        #        self.username,
+        #        self.server.server_name
+        #    )
         return '%s://%s'%(self.protocol, self.username)
 
     @property
@@ -100,6 +100,13 @@ class ServerAccount(models.Model):
             sga_list.append(sga.server_group.group_name)
         return ', '.join(sga_list)
 
+    @property
+    def get_assigned_servers(self):
+        sam_list = []
+        for sam in self.serveraccountmap_set.all():
+            sam_list.append(sam.server.server_name)
+        return ', '.join(sam_list)
+
     def __repr__(self):
         return self.__unicode__()
 
@@ -109,3 +116,10 @@ class ServerGroupAccount(models.Model):
 
     def __unicode__(self):
         return '%s -> %s'%(self.server_account.username, self.server_group.group_name)
+
+class ServerAccountMap(models.Model):
+    server_account = models.ForeignKey(ServerAccount)
+    server = models.ForeignKey(Server)
+
+    def __unicode__(self):
+        return '%s -> %s'%(self.server_account.username, self.server.server_name)

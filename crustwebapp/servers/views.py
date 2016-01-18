@@ -2,10 +2,12 @@ from rest_framework import permissions, viewsets
 from rest_framework import views, status, generics
 from rest_framework.response import Response
 from django.db.models import Q, Count
-from servers.models import ServerGroup, Server, ServerAccount, ServerGroupAccount
+from servers.models import ServerGroup, Server, ServerAccount
+from servers.models import ServerGroupAccount, ServerAccountMap
 from servers.serializers import ServerGroupSerializer, ServerSerializer
 from servers.serializers import ServerAccountSerializer
 from servers.serializers import ServerGroupAccountSerializer
+from servers.serializers import ServerAccountMapSerializer
 
 from servers.permissions import IsAdminOrGroupOwner
 from servers.permissions import IsAdminOrServerOwner
@@ -21,7 +23,7 @@ class ServerGroupsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = ServerGroup.objects.annotate(server_count=Count('server'))
         queryset = queryset.annotate(
-            serveraccount_count=Count('server__serveraccount')
+            serveraccount_count=Count('server__serveraccountmap')
         )
 
         if self.request.user.is_admin:
@@ -125,7 +127,7 @@ class ServersViewSet(viewsets.ModelViewSet):
     serializer_class = ServerSerializer
 
     def get_queryset(self):
-        queryset = Server.objects.annotate(serveraccount_count=Count('serveraccount'))
+        queryset = Server.objects.annotate(serveraccount_count=Count('serveraccountmap'))
 
         if self.request.user.is_admin:
             queryset = queryset.all().order_by('server_name')
@@ -247,12 +249,16 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         data = request.data
-        assign_mode = data['assign_mode']
-        server_obj = None
-        if assign_mode=='server':
-            server_data = data.pop('server')
-            server_obj = Server.objects.get(id=server_data['id'])
-        else:# add server groups
+        servers = []
+        server_groups = []
+        if data.has_key('servers'):
+            servers_data = data.pop('servers')
+            servers = [
+                Server.objects.get(id=item['id'])
+                for item in servers_data
+            ]
+
+        if data.has_key('server_groups'):# add server groups
             server_groups = data.pop('server_groups')
             server_groups = [
                 ServerGroup.objects.get(id=item['id'])
@@ -261,30 +267,34 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
 
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            if assign_mode == 'server':
-                serializer.save(server=server_obj)
-            else:
-                serializer.save()
-                account_id = serializer.data['id']
-                sa = ServerAccount.objects.get(id=account_id)
-                for sg in server_groups:
-                    sga = ServerGroupAccount(server_account=sa, server_group=sg)
-                    sga.save()
+            serializer.save()
+            account_id = serializer.data['id']
+            sa = ServerAccount.objects.get(id=account_id)
+            # add servers
+            for s in servers:
+                ServerAccountMap(server_account=sa, server=s).save()
+            # add server groups
+            for sg in server_groups:
+                sga = ServerGroupAccount(server_account=sa, server_group=sg).save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
     def update(self, request, pk):
         serveraccount_obj = ServerAccount.objects.get(id=pk)
         data = request.data
-        assign_mode = data['assign_mode']
-        server_obj = None
-        if assign_mode=='server':
-            server_data = data.pop('server')
-            server_obj = Server.objects.get(id=server_data['id'])
-        else:
+        servers = []
+        server_groups = []
+
+        if data.has_key('servers'):
+            servers_data = data.pop('servers')
+            servers = [
+                Server.objects.get(id=item['id'])
+                for item in servers_data]
+        if data.has_key('server_groups'):
             server_groups = data.pop('server_groups')
             server_groups = [
                 ServerGroup.objects.get(id=item['id'])
@@ -293,18 +303,22 @@ class ServerAccountsViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(serveraccount_obj, data=data)
 
         if serializer.is_valid():
-            if assign_mode=='server':
-                serializer.save(server=server_obj)
-            else:
-                serializer.save()
-                ServerGroupAccount.objects.filter(
-                    server_account=serveraccount_obj).delete()
-                for sg in server_groups:
-                    sga = ServerGroupAccount(server_account=serveraccount_obj,
-                                             server_group=sg)
-                    sga.save()
+            serializer.save()
+            ServerAccountMap.objects.filter(
+                server_account=serveraccount_obj).delete()
+            for s in servers:
+                ServerAccountMap(
+                    server_account = serveraccount_obj,
+                    server = s
+                ).save()
 
-
+            ServerGroupAccount.objects.filter(
+                server_account=serveraccount_obj).delete()
+            for sg in server_groups:
+                sga = ServerGroupAccount(
+                    server_account=serveraccount_obj,
+                    server_group=sg
+                ).save()
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
@@ -335,30 +349,6 @@ class ServerGroupAccountsViewSet(viewsets.ModelViewSet):
             sa = ServerAccount.objects.get(
                 id=int(self.request.query_params.get('server_account_id')))
             queryset = queryset.filter(server_account=sa)
-
-        #if self.request.user.is_admin:
-        #    queryset = queryset.all().order_by('username')
-        #else:
-        #    queryset = queryset.filter(
-        #        server__server_group__supervisor=self.request.user
-        #    ).order_by('username')
-
-        #hint = self.request.query_params.get('hint', None)
-        #search_filter = self.request.query_params.get('search_filter', None)
-        #if hint:
-        #    hint = hint.split('@')
-        #    if hint[0]:
-        #        queryset = queryset.filter(username__icontains=hint[0])
-        #    if len(hint)>1 and hint[1]:
-        #        queryset = queryset.filter(server__server_name__icontains=hint[1])
-
-        #if search_filter:
-        #    queryset = queryset.filter(
-        #        Q(server__server_name__icontains=search_filter)|
-        #        Q(username__icontains=search_filter)|
-        #        Q(comment__icontains=search_filter)|
-        #        Q(protocol__icontains=search_filter)
-        #    )
 
         for key,val in self.request.query_params.iteritems():
             if key in ['page', 'page_size', 'ordering', 'search_filter', 'hint']:
@@ -393,7 +383,7 @@ class ServerGroupAccountsViewSet(viewsets.ModelViewSet):
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk):
-        sgaccount_obj = ServerAccount.objects.get(id=pk)
+        sgaccount_obj = ServerGroupAccount.objects.get(id=pk)
         data = request.data
 
         server_account_data = data.pop('server_account')
@@ -406,6 +396,75 @@ class ServerGroupAccountsViewSet(viewsets.ModelViewSet):
             serializer.save(
                 server_account=server_account_obj,
                 server_group_obj=server_group_obj
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ServerAccountMapsViewSet(viewsets.ModelViewSet):
+    serializer_class = ServerAccountMapSerializer
+
+    def get_queryset(self):
+        queryset = ServerAccountMap.objects
+        if self.request.query_params.has_key('server_id'):
+            server_obj = Server.objects.get(
+                id=int(self.request.query_params.get('server_id'))
+            )
+            queryset = queryset.filter(server=server_obj)
+
+        elif self.request.query_params.has_key('server_account_id'):
+            sa = ServerAccount.objects.get(
+                id=int(self.request.query_params.get('server_account_id')))
+            queryset = queryset.filter(server_account=sa)
+
+        for key,val in self.request.query_params.iteritems():
+            if key in ['page', 'page_size', 'ordering', 'search_filter', 'hint']:
+                continue
+            queryset = queryset.filter(**{key:val})
+
+        ordering = self.request.query_params.get('ordering', '-id')
+        queryset = queryset.order_by(ordering)
+
+        return queryset
+
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), ) #fix, check access to sg or sa?
+
+    def create(self, request):
+        data = request.data
+        server_account_data = data.pop('server_account')
+        server_account_obj = ServerAccount.objects.get(id=server_account_data['id'])
+        server_data = data.pop('server')
+        server_obj = Server.objects.get(id=server_data['id'])
+
+        print data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save(
+                server_account=server_account_obj,
+                server=server_obj
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk):
+        sgaccount_obj = ServerAccountMap.objects.get(id=pk)
+        data = request.data
+
+        server_account_data = data.pop('server_account')
+        server_account_obj = ServerAccount.objects.get(id=server_account_data['id'])
+        server_data = data.pop('server')
+        server_obj = Server.objects.get(id=server_data['id'])
+
+        serializer = self.serializer_class(sgaccount_obj, data=data)
+        if serializer.is_valid():
+            serializer.save(
+                server_account=server_account_obj,
+                server_obj=server_obj
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:

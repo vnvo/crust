@@ -20,7 +20,12 @@
             //Server Group Account API
             getAccountGroups: getServerGroupsForAccount,
             delAccountGroups: delServerGroupsForAccount,
-            addAccountGroups: addServerGroupsForAccount
+            addAccountGroups: addServerGroupsForAccount,
+
+            //Server Account Map API
+            getAccountServers: getServersForAccount,
+            delAccountServers: delServersForAccount,
+            addAccountServers: addServersForAccount
 
         };
         return ServerAccounts;
@@ -80,6 +85,24 @@
                 {server_account:server_account, server_group:server_group}
             );
         }
+
+        //////////////
+        function getServersForAccount(server_account_id){
+            return $http.get('/api/v1/serveraccountmaps/',
+                             {params: {server_account_id:server_account_id}});
+        }
+
+        function delServersForAccount(server_account_map_id){
+            return $http.delete('/api/v1/serveraccountmaps/'+server_account_map_id+'/');
+        }
+
+        function addServersForAccount(server_account, server){
+            return $http.post(
+                '/api/v1/serveraccountmaps/',
+                {server_account:server_account, server:server}
+            );
+        }
+
 
     }
 

@@ -18,9 +18,12 @@
         vm.update = update;
         $scope.selected_server_groups = [];
         $scope.remove_server_groups = [];
-
+        vm.selected_servers = [];
+        vm.remove_servers = [];
+        vm.assign_server = null;
         vm.assign_server_group = null;
         vm.assign_mode='server';
+
         vm.password_mode = 'local';
         $scope.protocol_data = ['ssh', 'telnet'];
         $scope.password_modes = ['local', 'ask user'];
@@ -41,6 +44,13 @@
             console.log($scope.remove_server_groups);
         };
 
+        vm.onServerSelect = function($item, $model, $label){
+            vm.selected_servers.push($item);
+            vm.assign_server = null;
+        };
+        vm.removeServer = function(index){
+            vm.selected_servers.splice(index, 1);
+        };
 
         function getServersSuggestion($viewValue){
             return Servers.getSuggestion($viewValue).then(
@@ -75,40 +85,50 @@
                 vm.serveraccount_id = sa_data.id;
                 vm.username = sa_data.username;
                 vm.password_mode = sa_data.password_mode;
-                vm.server = sa_data.server;
+                //vm.server = sa_data.server;
                 vm.protocol = sa_data.protocol;
                 vm.sshv2_private_key = sa_data.sshv2_private_key;
                 vm.is_locked = sa_data.is_locked;
                 vm.comment = sa_data.comment;
 
-                if(vm.server==null){
-                    vm.assign_mode='server-group';
-                    getAccountServerGroups();
-                }
-            }
-
-            function getAccountServerGroups(){
-                ServerAccounts.getAccountGroups(vm.serveraccount_id).then(
-                    getSGASuccess, getSGAError);
-                function getSGASuccess(data, status, heders, config){
-                    console.log(data.data.results);
-                    angular.forEach(data.data.results,
-                                    function(sga, index){
-                                        console.log(index);
-                                        console.log(sga);
-                                        $scope.selected_server_groups.push(
-                                            sga.server_group
-                                        );
-                                    }
-                                   );
-                }
-                function getSGAError(data, status, headers, config){
-                    console.log(data);
-                }
+                getAccountServerGroups();
+                getAccountServers();
             }
 
             function getSAError(data, status, headers, config){
                 Snackbar.error('Can not get Server Account Info');
+            }
+        }
+
+
+        function getAccountServerGroups(){
+            ServerAccounts.getAccountGroups(vm.serveraccount_id).then(
+                getSGASuccess, getSGAError);
+            function getSGASuccess(data, status, heders, config){
+                console.log(data.data.results);
+                angular.forEach(
+                    data.data.results,
+                    function(sga, index){
+                        $scope.selected_server_groups.push(sga.server_group);}
+                );
+            }
+            function getSGAError(data, status, headers, config){
+                console.log(data);
+            }
+        }
+
+        function getAccountServers(){
+            ServerAccounts.getAccountServers(vm.serveraccount_id).then(
+                getSAMSuccess, getSAMError);
+            function getSAMSuccess(data, status, heders, config){
+                console.log(data.data.results);
+                angular.forEach(
+                    data.data.results,
+                    function(sam, index){vm.selected_servers.push(sam.server);}
+                );
+            }
+            function getSAMError(data, status, headers, config){
+                console.log(data);
             }
         }
 
@@ -118,8 +138,9 @@
                 {username: vm.username, password: vm.password, assign_mode:vm.assign_mode,
                  confirm_password: vm.confirm_password, is_locked: vm.is_locked,
                  comment: vm.comment, sshv2_private_key: vm.ssh2_private_key,
-                 server: vm.server, protocol: vm.protocol, password_mode:vm.password_mode,
-                 server_groups:$scope.selected_server_groups
+                 protocol: vm.protocol, password_mode:vm.password_mode,
+                 server_groups:$scope.selected_server_groups,
+                 servers: vm.selected_servers
                 }
             ).then(updateSASuccess, updateSAError);
 

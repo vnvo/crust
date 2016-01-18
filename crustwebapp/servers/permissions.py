@@ -24,8 +24,9 @@ class IsAdminOrServerAccountOwner(permissions.BasePermission):
         if request.user.is_admin:
             return True
 
-        if serveraccount_obj.server:
-            if serveraccount_obj.server.server_group.supervisor == request.user:
-                return True
+        #@todo: check access here for non-admin users
+        #if serveraccount_obj.serveraccountmap_set.all():
+        #    if serveraccount_obj.server.server_group.supervisor == request.user:
+        #        return True
 
         return False

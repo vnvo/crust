@@ -10,4 +10,23 @@
     Add New Server
 </button>
 <br/><br/>
-<div class="gridStyle" ng-grid="gridOptions"></div>
+<div>
+    <table style="margin:auto;">
+        <tr>
+            <td>Server Group:</td>
+            <td style="padding-left:10px;">
+                <select ng-model="vm.server_group_filter"
+                        ng-options="item.group_name for item in vm.servergroups_data">
+                    <option value="">- All Server Groups -</option>
+                </select>
+            </td>
+            <td width="30px"></td>
+            <td>IP:</td>
+            <td style="padding-left:10px;">
+                <input ng-model="vm.ip_filter" placeholder="IP1,IP2,..." />
+            </td>
+        </tr>
+    </table>
+</div>
+<br>
+<div class="gridStyle" ng-grid="gridOptions" style="margin:autO;"></div>

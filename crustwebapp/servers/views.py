@@ -1,3 +1,4 @@
+import operator
 from rest_framework import permissions, viewsets
 from rest_framework import views, status, generics
 from rest_framework.response import Response
@@ -148,8 +149,18 @@ class ServersViewSet(viewsets.ModelViewSet):
                 Q(comment__icontains=search_filter)
             )
 
+        ############## Filter By Specific Conditions ##############
+        qp = self.request.query_params
+        if qp.has_key('ip'): # we want to handle ip condition separatly
+            ip_list = qp.get('ip').split(',')
+            queryset = queryset.filter(
+                reduce(operator.or_,
+                       (Q(server_ip__startswith=item) for item in ip_list))
+            )
+
         for key,val in self.request.query_params.iteritems():
-            if key in ['page', 'page_size', 'ordering', 'search_filter', 'hint']:
+            if key in ['page', 'page_size', 'ordering', 'search_filter',
+                       'hint', 'ip']:
                 continue
             queryset = queryset.filter(**{key:val})
 

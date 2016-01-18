@@ -9,15 +9,41 @@
         .controller('ServersController', ServersController);
 
     ServersController.$inject = [
-        '$scope', 'Servers', 'Snackbar', 'ngDialog'
+        '$scope', 'Servers', 'Snackbar', 'ngDialog', 'ServerGroups'
     ];
 
 
-    function ServersController($scope, Servers, Snackbar, ngDialog){
+    function ServersController($scope, Servers, Snackbar, ngDialog, ServerGroups){
         var vm = this;
 
         $scope.deleteServer = deleteServer;
         $scope.startUpdateDialog = startUpdateDialog;
+        vm.server_group_filter = null;
+        vm.ip_filter = null;
+
+        getServerGroups();
+
+        $scope.$watch('vm.server_group_filter',
+                      function (newVal, oldVal) {
+                          if (newVal !== oldVal)
+                              getServers();
+                      }, true);
+        $scope.$watch('vm.ip_filter',
+                      function (newVal, oldVal) {
+                          if (newVal !== oldVal)
+                              getServers();
+                      }, true);
+
+        function getServerGroups(){
+            ServerGroups.all(200, 1).then(getSGSuccess, getSGError);
+            function getSGSuccess(data, status, headers, config){
+                vm.servergroups_data = data.data.results;
+            }
+            function getSGError(data, status, headers, config){
+                Snackbar.error('Can not get Server Groups');
+            }
+        }
+
 
         function startUpdateDialog(event, grid_row){
             $scope.update_server_id = grid_row.entity.id;
@@ -87,13 +113,15 @@
             }
         };
 
-        $scope.getPagedDataAsync = function (pageSize, page, searchText, ordering) {
+        $scope.getPagedDataAsync = function (pageSize, page, searchText,
+                                             ordering, serverGroup, ip) {
             setTimeout(function () {
                 var data;
 
-                Servers.all(pageSize, page, searchText, ordering).then(
-                    getAllServersSuccess, getAllServersError
-                );
+                Servers.all(pageSize, page, searchText,
+                            ordering, serverGroup, ip).then(
+                                getAllServersSuccess, getAllServersError
+                            );
                 function getAllServersSuccess(data, status, headers, config){
                     $scope.setPagingData(data.data, page, pageSize);
                 }
@@ -164,11 +192,20 @@
         };
 
         function getServers(){
+            var server_group_id = null;
+            if(vm.server_group_filter)
+                server_group_id=vm.server_group_filter['id'];
+
+            console.log(server_group_id);
+            console.log(vm.ip_filter);
+
             $scope.getPagedDataAsync(
                 $scope.pagingOptions.pageSize,
                 $scope.pagingOptions.currentPage,
                 $scope.gridOptions.$gridScope.filterText,
-                $scope.ordering
+                $scope.ordering,
+                server_group_id,
+                vm.ip_filter
             );
         }
 

@@ -532,6 +532,7 @@ def cleanup(userchan, app):
 
 
 def run_session(client, client_addr):
+    paramiko.Transport._CLIENT_ID = 'Crust_1.0.1'
     user = paramiko.Transport(client)
     add_host_keys(user)
     remote_host = client_addr[0]

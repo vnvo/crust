@@ -1,6 +1,6 @@
 from django.db import models
 from servers.models import ServerAccount, ServerGroup, Server
-from servers.models import ServerGroupAccount
+from servers.models import ServerGroupAccount, ServerAccountMap
 from remoteusers.models import RemoteUser
 from commandgroups.models import CommandGroup
 
@@ -72,8 +72,8 @@ class RemoteUserACL(models.Model):
 
         for acl in acl_list:
             if acl.server_account:
-                sg = acl.server_account.server.server_group
-                add_server_group_from_server(acl, sg)
+                for sga in acl.server_account.servergroupaccount_set.all():
+                    add_server_group_from_server(acl, sga.server_group)
 
             elif acl.server:
                 sg = acl.server.server_group
@@ -97,9 +97,14 @@ class RemoteUserACL(models.Model):
 
         for acl in acl_list:
             if acl.server_account:
-                if acl.server_account.server.server_group != server_group:
+                server_account_maps = ServerAccountMap.objects.filter(
+                    server_account=acl.server_account
+                ).filter(server__server_group=server_group)
+
+                if not server_account_maps:
                     continue
-                add_server_from_serveraccount(acl, acl.server_account.server)
+                for sam in server_account_maps:
+                    add_server_from_serveraccount(acl, sam.server)
 
             elif acl.server:
                 if acl.server.server_group != server_group:
@@ -133,29 +138,42 @@ class RemoteUserACL(models.Model):
 
         for acl in acl_list:
             if acl.server_account:
-                if acl.server_account.server != server:
+                server_account_maps = ServerAccountMap.objects.filter(
+                    server=server
+                ).filter(
+                    server_account=acl.server_account
+                )
+                if not server_account_maps:
                     continue
+
                 if acl.acl_action == 'allow':
-                    allow_list.add(acl.server_account)
-                    sa_to_acl[acl.server_account.id] = acl
+                    sa = server_account_maps[0].server_account
+                    sa.server=server
+                    allow_list.add(sa)
+                    sa_to_acl[sa.id] = acl
                 else:
-                    deny_list.add(acl.server_account)
+                    deny_list.add(sa)
 
             elif acl.server:
-                if acl.server != server:
-                    continue
+                #server_account_maps = ServerAccountMap.objects.filter(server=server)
+                #if not server_account_maps:
+                #    continue
 
-                for server_account in acl.server.serveraccount_set.all():
+                for sam in acl.server.serveraccountmap_set.all():
+                    sa = sam.server_account
+                    sa.server = server
                     if acl.acl_action == 'allow':
-                        allow_list.add(server_account)
-                        sa_to_acl[server_account.id] = acl
+                        allow_list.add(sa)
+                        sa_to_acl[sa.id] = acl
             else:
                 sg_servers = acl.server_group.server_set.filter(server_ip=server.server_ip)
                 print sg_servers
                 if sg_servers and acl.acl_action == 'allow':
-                    for server_account in sg_servers[0].serveraccount_set.all():
-                        allow_list.add(server_account)
-                        sa_to_acl[server_account.id] = acl
+                    for sam in sg_servers[0].serveraccountmap_set.all():
+                        sa = sam.server_account
+                        sa.server = server
+                        allow_list.add(sa)
+                        sa_to_acl[sa.id] = acl
 
                 #add server group account
                 print 'checking server group accounts', server

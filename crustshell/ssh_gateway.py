@@ -780,6 +780,7 @@ def handle_ssh_connection(server_account, sshgw, remote_host, userchan, spinner)
             username=username, password=password, timeout=10,
             allow_agent=False, look_for_keys=False)
     except Exception as e:
+        logger.exception(str(server_account))
         spinner.stop("error!")
         logger.error('Failed to connect to %s: %s' %  (server_host, str(e)))
         send_message(userchan, 'Failed to connect to %s: %s'%(

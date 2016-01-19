@@ -50,7 +50,7 @@ class RemoteUserACL(models.Model):
 
     @classmethod
     def get_filtered_server_groups(cls, remote_user):
-        acl_list = cls.objects.filter(remote_user=remote_user).all()
+        acl_list = cls.objects.filter(remote_user=remote_user).filter(is_active=True).all()
         allow_list = set()
         deny_list = set()
 
@@ -86,7 +86,7 @@ class RemoteUserACL(models.Model):
 
     @classmethod
     def get_filtered_servers_by_group(cls, remote_user, server_group):
-        acl_list = cls.objects.filter(remote_user=remote_user).all()
+        acl_list = cls.objects.filter(remote_user=remote_user).filter(is_active=True).all()
         allow_list = set()
         deny_list = set()
 
@@ -127,7 +127,7 @@ class RemoteUserACL(models.Model):
 
     @classmethod
     def get_filtered_server_accounts_by_server(cls, remote_user, server):
-        acl_list = cls.objects.filter(remote_user=remote_user).all()
+        acl_list = cls.objects.filter(remote_user=remote_user).filter(is_active=True).all()
         allow_list = set()
         deny_list = set()
 
@@ -197,3 +197,64 @@ class RemoteUserACL(models.Model):
 
         print sa_allow_list_acl
         return sa_allow_list_acl
+
+    @classmethod
+    def check_direct_access(self, remote_user, proto, server_account_username, server_name):
+        print 'check-direct-access: %s, %s, %s, %s'%(
+            remote_user, proto, server_account_username, server_name
+        )
+
+        server_account = ServerAccount.objects.filter(
+            username = server_account_username
+        ).filter(protocol=proto)
+        if server_account:
+            server_account = server_account[0]
+        else:
+            print 'server_account not found!'
+            return None
+
+        server = Server.objects.filter(server_name=server_name)
+        if server:
+            server = server[0]
+        else:
+            print 'server not found!'
+            return None
+
+        #check server account and server relation
+        sam = server_account.serveraccountmap_set.filter(server=server)
+        if not sam: # we should check by server group relation
+            sga = server_account.servergroupaccount_set.filter(server_group=server.server_group)
+            if not sga:
+                print 'no relation for server_account and server!'
+                return None
+
+        server_account.server = server #@todo: dirty, fix this mechanism
+        #check acls
+        acl_by_account = RemoteUserACL.objects.filter(
+            remote_user=remote_user
+        ).filter(
+            server_account=server_account
+        ).filter(acl_action='allow').filter(is_active=True)
+        if acl_by_account:
+            server_account.apply_acl = acl_by_account[0]
+            return server_account
+
+        acl_by_server = RemoteUserACL.objects.filter(
+            remote_user=remote_user
+        ).filter(
+            server=server
+        ).filter(acl_action='allow').filter(is_active=True)
+        if acl_by_server:
+            server_account.apply_acl = acl_by_server[0]
+            return server_account
+
+        acl_by_server_group = RemoteUserACL.objects.filter(
+            remote_user=remote_user
+        ).filter(
+            server_group=server.server_group
+        ).filter(acl_action='allow').filter(is_active=True)
+        if acl_by_server_group:
+            server_account.apply_acl = acl_by_server_group[0]
+            return server_account
+
+        return None

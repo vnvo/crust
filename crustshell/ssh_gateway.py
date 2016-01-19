@@ -13,11 +13,13 @@ import logging.handlers
 import pwd
 import time
 import datetime
+import re
 from optparse import OptionParser
 from shell_box_menu import ShellBoxMenu
 from db_utils import get_remote_user_by_username, get_acls_by_remote_user
 from db_utils import start_new_cli_sessions, save_cli_session_event
 from db_utils import close_cli_session
+from db_utils import RemoteUserACL
 from lib.ipaddr import IPNetwork, IPAddress
 from lib.terminal import Terminal
 from lib.terminal import css_renditions
@@ -69,6 +71,8 @@ class SSHGateway (paramiko.ServerInterface):
         self.event = threading.Event()
         self.remote_credentials = None
         self.remote_addr = IPAddress(remote_addr)
+        self.direct_request = None
+        self.username = None
         self.user = None
         self.tty_size = None
         self.ignore_resize = True
@@ -80,10 +84,31 @@ class SSHGateway (paramiko.ServerInterface):
         logger.debug('Handled a channel request, denied: ' + kind)
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
+    def check_direct_connection(self, username):
+        """
+        In direct connection mode, client would specify the username
+        as proto#server-account-username#server-name#actual-remote-username .
+        In this mode, crust will try to connect the remote-user directly to
+        target server without presenting the menu.
+        """
+        conn_info = re.findall(
+            '(.*)#(.*)#(.*)#(.*)', username
+        )
+        if conn_info and len(conn_info[0])==4: #direct connection requested
+            logger.info('Direct Mode Connection Detected ==> %s'%str(conn_info))
+            username = conn_info[0][-1]
+            self.direct_request = {
+                'proto':conn_info[0][0],
+                'server_account_username':conn_info[0][1],
+                'server_name':conn_info[0][2]}
+
+        return username
+
     def check_auth_password(self, username, password):
         logger.debug('Checking password for user %s' % (username))
-
+        username = self.check_direct_connection(username)
         user_obj = get_remote_user_by_username(username)
+
         if not user_obj:
             logger.info('Username "%s" not found'%username)
             return paramiko.AUTH_FAILED
@@ -559,20 +584,33 @@ def run_session(client, client_addr):
         logger.warn('Client never asked for a shell or sftp.')
         sys.exit(1)
 
-    try:
-        sshgw.ignore_resize = True
-        target_server_account = ShellBoxMenu(
-            userchan, sshgw.user, remote_host, logger
-        ).main()
-    except Exception as e:
-        print e
-        raise
+    if sshgw.direct_request:
+        print sshgw.direct_request
+        info = sshgw.direct_request
+        target_server_account = RemoteUserACL.check_direct_access(
+            sshgw.user, info['proto'],
+            info['server_account_username'], info['server_name'])
+        print target_server_account
+        if not target_server_account:
+            send_message(userchan, 'Invalid Direct Connection Info, Exit.')
+            cleanup(userchan, None)
+            return 1
+
+    else:
+        try:
+            sshgw.ignore_resize = True
+            target_server_account = ShellBoxMenu(
+                userchan, sshgw.user, remote_host, logger
+            ).main()
+        except Exception as e:
+            print e
+            raise
 
     sshgw.ignore_resize = False
 
     logger.info('Selected: %s'%target_server_account)
     if not target_server_account:
-        send_message(userchan, 'No Target Selected,Exit ...')
+        send_message(userchan, 'No Target Selected, Exit')
         cleanup(userchan, None)
         return 1
 

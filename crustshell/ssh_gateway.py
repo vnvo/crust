@@ -24,7 +24,7 @@ from db_utils import RemoteUserACL
 from lib.ipaddr import IPNetwork, IPAddress
 from lib.terminal import Terminal
 from lib.terminal import css_renditions
-from shell_menu import startCrustShellMenu
+#from shell_menu import startCrustShellMenu
 
 SESSION_LOG_PATH = '/var/log/shell_box'
 

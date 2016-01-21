@@ -127,7 +127,7 @@
 <!-- /.row -->
 <br/>
 <div class="row">
-    <div class="col-xs-6">
+    <div class="col-xs-7">
         <div class="panel panel-default">
             <div class="panel-heading text-center">
                 <h4>Active Sessions</h4>
@@ -142,7 +142,7 @@
                             <th>Start</th>
                             <th>IP</th>
                             <th>Remote User</th>
-                            <th>Server</th>
+                            <th>Connection</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -151,7 +151,7 @@
                             <td>{{session.created_at}}</td>
                             <td>{{session.client_ip}}</td>
                             <td>{{session.remoteuser}}</td>
-                            <td>{{session.server}}</td>
+                            <td>{{session.serveraccount}}@{{session.server}}</td>
                             <td>
                                 <a class="btn btn-primary" title="View Log"
                                    ng-href="/crustsessions/{{session.id}}/logs"
@@ -168,7 +168,7 @@
             </div>
 </div>
     </div>
-    <div class="col-xs-6">
+    <div class="col-xs-5">
         <highchart id="server-groups-server-count" config="serverCountChartConfig" ></highchart>
     </div>
 </div>

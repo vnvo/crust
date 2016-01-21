@@ -21,7 +21,7 @@
         $scope.current_session_event_index = 0;
         $scope.current_event_id = null;
         $scope.session_play = false;
-        $scope.playback_speed = 1;
+        $scope.playback_speed = 4;
         $scope.session_events = [];
         $scope.session_status = null;
         $scope.last_event_epoch = null;
@@ -43,7 +43,7 @@
 
             if($scope.current_session_event_index >= $scope.session_events.length-1){
                 console.log('no more session event, fetching');
-                if($scope.session_status.indexOf('close')!=-1){
+                if($scope.session_status.indexOf('CLOSED')!=-1){
                     console.log('end of session');
                     $scope.session_play = false;
                     return;

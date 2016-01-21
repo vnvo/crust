@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import socket
+import struct
 import sys
 import threading
 import traceback
@@ -35,13 +36,13 @@ class ChannelClosedException(Exception):
     pass
 
 class TerminalThrobber(threading.Thread):
-    def __init__(self, channel, host):
+    def __init__(self, channel, connection):
         threading.Thread.__init__(self)
         self.channel = channel
         self.throb = True
         self.daemon = True
         self.message = ""
-        self.host = host
+        self.connection = connection
         self.update_interval = 0.05
 
     def run(self):
@@ -49,8 +50,8 @@ class TerminalThrobber(threading.Thread):
         if self.channel.requested_action != 'interactive':
             return
 
-        self.channel.send('====================================================================\r\n')
-        self.channel.send("\r\nConnecting to %s ...  "%self.host)
+        self.channel.send('\r\n====================================================================\r\n')
+        self.channel.send("\r\nConnecting to %s ...  "%self.connection)
         throbber = ['|', '/', '-', '\\']
         count = 0
         while self.throb:
@@ -186,7 +187,7 @@ class SSHGateway (paramiko.ServerInterface):
                 channel.paired_interactive_session.resize_pty(width, height)
                 self.tty_size = (width, height)
         except:
-            logger.exception()
+            logger.exception('window resize: ')
 
 def create_user_log_dirs(username):
     """
@@ -318,7 +319,6 @@ class InteractiveLogger(object):
         self._close_session('CLOSED-NORMAL')
 
 def configure_logger():
-    print "preparint logging ..."
     logtemp = logging.getLogger('sshgw')
 
     if config['verbose']:
@@ -614,7 +614,11 @@ def run_session(client, client_addr):
         cleanup(userchan, None)
         return 1
 
-    spinner = TerminalThrobber(userchan, target_server_account)
+    spinner = TerminalThrobber(
+        userchan,
+        '%s@%s'%(target_server_account,
+                 target_server_account.server)
+    )
     #spinner.start()
 
     #ssh or telnet
@@ -640,11 +644,12 @@ def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinn
     if server_account.password_mode=='ask user':
         print 'asking for pass'
         user_pass = ask_for_pass(userchan, username, server_host)
-        print 'asked for pass: ', user_pass
+        print 'asked for pass'
         password = user_pass
 
     spinner.start()
     tc = telnetlib.Telnet(host=server_host, port=server_port)
+    tc.set_option_negotiation_callback(process_option)
 
     def handle_auth():
         print 'handle_auth ...'
@@ -702,8 +707,25 @@ def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinn
     session_logger = InteractiveLogger(sshgw, remote_host,
                                        server_account,
                                        None)
+    class TelnetSession:
+        def __init__(self, tc):
+            self.tc = tc
+            self.active = True
 
-    copy_bidirectional_blocking_telnet(userchan, tc.get_socket(),
+        def resize_pty(self, w, h):
+            print 'telnet session resize: ', w, h
+            naws_command = struct.pack(
+                '!BBBHHBB',
+                255, 250, 31, # IAC SB NAWS
+                w, h,
+                255, 240) # IAC SE
+            self.tc.get_socket().send(naws_command)
+
+    userchan.paired_interactive_session = TelnetSession(tc)
+    if sshgw.tty_size:
+        userchan.paired_interactive_session.resize_pty(*sshgw.tty_size)
+
+    copy_bidirectional_blocking_telnet(userchan, tc,
                                        session_logger,
                                        server_account.apply_acl)
     session_logger.finish_up()
@@ -714,9 +736,27 @@ def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinn
 
     return 0
 
+def process_option(tsocket, command, option):
+    print 'process options called', command, option
+
+    from telnetlib import IAC, DO, DONT, WILL, WONT, SB, SE, TTYPE, NAWS
+    if command == DO and option == TTYPE:
+        tsocket.sendall(IAC + WILL + TTYPE)
+        print 'Sending terminal type "xterm"'
+        tsocket.sendall(IAC + SB + TTYPE + '\0' + 'xterm' + IAC + SE)
+    elif command == DO and option == NAWS:
+        print 'WILL NAWS', ord(option)
+        tsocket.sendall(IAC + WILL + option)
+    elif command in (DO, DONT):
+        print 'Will not', ord(option)
+        tsocket.sendall(IAC + WONT + option)
+    elif command in (WILL, WONT):
+        print 'Do not', ord(option)
+        tsocket.sendall(IAC + DONT + option)
+
 
 def copy_bidirectional_blocking_telnet(client, server, session_logger=None, apply_acl=None):
-    socklist = (client.fileno(), server.fileno())
+    socklist = (client.fileno(), server.get_socket().fileno())
 
     channel_closed = False
     abort = False
@@ -727,20 +767,14 @@ def copy_bidirectional_blocking_telnet(client, server, session_logger=None, appl
     print command_buff
 
     while not abort and not channel_closed:
-        #rlist, wlist, elist = select.select(socklist, socklist, socklist, 0.3)
-        rlist, wlist, elist = select.select([client.fileno()], [], [], 0.1)
-        #print 'after select'
+        rlist, wlist, elist = select.select([client.fileno()], [], [], 0.03)
         if channel_closed == True:
             abort = True
         try:
             if rlist:
                 client_data = client.recv(1024)
-                print 'recv client data: "%s"'%client_data, len(client_data)
-                #print '\b' in client_data
-
+                #print 'recv client data: "%s"'%client_data, len(client_data)
                 print 'command_buff=',command_buff
-                x = '\b' in client_data
-                print 'has backspace=',x
                 print 'data=', client_data, [ord(i) for i in client_data]
                 if command_buff is not None:
                     for ch in client_data:
@@ -753,30 +787,29 @@ def copy_bidirectional_blocking_telnet(client, server, session_logger=None, appl
                     if not check_user_command(command_buff, apply_acl):
                         print 'deny command: %s'%command_buff
                         client.sendall('\r\n** You nan not run this command! **\r\n\r\n')
-                        server.sendall('\b'*len(command_buff))
+                        server.write('\b'*len(command_buff))
                     else:
-                        server.sendall(client_data)
+                        server.write(client_data)
                     command_buff=''
 
                 else:
-                    print 'client data to send:', client_data
-                    server.sendall(client_data)
-
+                    server.write(client_data)
                 session_logger.log(client_data)
 
-            srlist, swlist, selist = select.select([server.fileno()], [], [], 0.1)
-            #print srlist, swlist, selist
+            srlist, swlist, selist = select.select([server.get_socket().fileno()], [], [], 0.03)
             if srlist:
-                server_data = server.recv(1024)
-                if not server_data:
+                try:
+                    server_data = server.read_very_eager()
+                except:
+                    logger.exception('telnet:')
                     print 'server is closed ...'
-                    server.shutdown(socket.SHUT_RDWR) # no more read/write
                     server.close()
                     abort = True
                 else:
-                    print 'recv server data: %s'%server_data
-                    client.sendall(server_data)
-                    session_logger.log(server_data, True)
+                    if server_data:
+                        print 'recv server data: len=%s'%len(server_data)
+                        client.sendall(server_data)
+                        session_logger.log(server_data, True)
 
         except ChannelClosedException:
             channel_closed = True
@@ -785,11 +818,11 @@ def copy_bidirectional_blocking_telnet(client, server, session_logger=None, appl
             abort = True
 
 def ask_for_pass(userchan, username, server_host):
-    userchan.send('\r\n Enter Your Pass (%s@%s):'%(username, server_host))
+    userchan.send('\r\n Please, Enter Your Pass (%s@%s):'%(username, server_host))
     user_pass = ''
     while '\n' not in user_pass and '\r' not in user_pass:
         user_pass += userchan.recv(1024)
-        print user_pass
+        #print user_pass
 
     return user_pass.strip()
 
@@ -898,29 +931,36 @@ def drop_privileges():
 def parse_options(print_help=False):
     parser = OptionParser()
 
-    parser.add_option('-l', '--listen-address', action='store', dest='bind-address', default='0.0.0.0',
-        help="Bind to this interface [default: %default]")
-    parser.add_option('-p', '--port', action='store', type=int, dest='listen-port', default=2200,
-        help="Listen on this port [default: %default]")
-    parser.add_option('--host-rsa-key', action='store', dest='host-rsa-key', default='/etc/hs/sshgateway/ssh_host_rsa_key',
-        help="Use this file as RSA host key [default: %default]")
-    parser.add_option('--host-dsa-key', action='store', dest='host-dsa-key', default='/etc/hs/sshgateway/ssh_host_dsa_key',
-        help="Use this file as DSA host key [default: %default]")
-    parser.add_option('--log-target', action='store', dest='log-target', default='syslog',
-        help="Send log output to this target. Can be either 'syslog', 'stdout' or a path to a file. [default: %default]")
-    parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False,
-        help="Log more information during the sesion. Only one -v is supported")
-    parser.add_option('-g', '--gateway-agent', action='store', dest='gateway-agent', default='127.0.0.1',
-        help="Address or hostname for the Gateway agent. [default: %default]")
-    parser.add_option('-u', '--user', action='store', dest='daemon-user', default='nobody',
-        help="When run as root, use this username after reading the host keys and binding to the listen-socket. [default: %default]")
+    parser.add_option('-l', '--listen-address', action='store',
+                      dest='bind-address', default='0.0.0.0',
+                      help="Bind to this interface [default: %default]")
+    parser.add_option('-p', '--port', action='store', type=int,
+                      dest='listen-port', default=2200,
+                      help="Listen on this port [default: %default]")
+    parser.add_option('--host-rsa-key', action='store', dest='host-rsa-key',
+                      default='/etc/hs/sshgateway/ssh_host_rsa_key',
+                      help="Use this file as RSA host key [default: %default]")
+    parser.add_option('--host-dsa-key', action='store', dest='host-dsa-key',
+                      default='/etc/hs/sshgateway/ssh_host_dsa_key',
+                      help="Use this file as DSA host key [default: %default]")
+    parser.add_option(
+        '--log-target', action='store', dest='log-target',
+        default='syslog',
+        help="Send log to this target. Can be either 'syslog', 'stdout' or a file path. [default: %default]")
+    parser.add_option('-v', '--verbose', action='store_true', dest='verbose',default=False,
+                      help="Log more information during the sesion. Only one -v is supported")
+    parser.add_option('-g', '--gateway-agent', action='store', dest='gateway-agent',
+                      default='127.0.0.1',
+                      help="Address or hostname for the Gateway agent. [default: %default]")
+    parser.add_option('-u', '--user', action='store', dest='daemon-user',
+                      default='nobody',
+                      help="When run as root, use this username after reading the host keys and binding to the listen-socket. [default: %default]")
 
     if print_help:
         parser.print_help()
         return
 
     (options, args) = parser.parse_args()
-
     return options.__dict__
 
 
@@ -961,6 +1001,7 @@ def main():
         logger.critical('Listen failed: ' + str(e))
         sys.exit(1)
 
+    print 'Crust SSH-GW is ready ...'
     # Accept loop
     try:
         while True:

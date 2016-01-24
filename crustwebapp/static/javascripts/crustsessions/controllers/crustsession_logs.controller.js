@@ -51,7 +51,7 @@
                     console.log('get next page ...');
                     $timeout(
                         function(){$scope.getNextPage();},
-                        2000);
+                        100);
                 }
             }
             console.log('play event index:', $scope.current_session_event_index);
@@ -101,7 +101,7 @@
                 },
                 function(data, status, headers, config){
                     Snackbar.error('Could not get Session Logs');
-                    console.log(data);
+                    //console.log(data);
                 }
             );
         };

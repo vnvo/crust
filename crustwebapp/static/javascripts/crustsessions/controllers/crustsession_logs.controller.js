@@ -18,10 +18,11 @@
         $scope.current_page = 1;
         $scope.page_size = 50000;
         $scope.current_session_event = null;
+        vm.event_time = null;
         $scope.current_session_event_index = 0;
         $scope.current_event_id = null;
         $scope.session_play = false;
-        $scope.playback_speed = 4;
+        $scope.playback_speed = 'No Delay';
         $scope.session_events = [];
         $scope.session_status = null;
         $scope.last_event_epoch = null;
@@ -30,6 +31,31 @@
         $scope.$on('$destroy', function(){
             $scope.session_play = false;
         });
+
+
+        $scope.killSession = function(){
+            if(!confirm('You are killing an Active Session, Are you sure?'))
+                return;
+
+            CrustSessions.kill($scope.session_id).then(
+                killSuccess, killError
+            );
+            function killSuccess(data, status, headers, config){
+                Snackbar.show('Session Killed Successfuly.');
+
+            }
+            function killError(data, status, headers, config){
+                Snackbar.error(
+                    'Can not Kill Active Session',
+                    {errors: data.data}
+                );
+            }
+        };
+
+        function formatEventTime(evt){
+            var et = new Date(evt*1000); //unix epoch
+            return et.toISOString().replace('T',' ').split('.')[0];
+        }
 
         $scope.playSessionEvents = function(){
             console.log('playing session events');
@@ -42,7 +68,7 @@
             );
 
             if($scope.current_session_event_index >= $scope.session_events.length-1){
-                console.log('no more session event, fetching');
+                console.log('no more session event');
                 if($scope.session_status.indexOf('CLOSED')!=-1){
                     console.log('end of session');
                     $scope.session_play = false;
@@ -59,6 +85,10 @@
             $scope.current_session_event = $scope.session_events[
                 $scope.current_session_event_index
             ];
+            vm.event_time = formatEventTime(
+                $scope.current_session_event.event_time
+            );
+
             $scope.current_event_id = $scope.current_session_event['id'];
 
             //set next event and delay for display
@@ -73,10 +103,16 @@
                 );
                 return;
             }
-            var delay = next_event.event_time -  $scope.current_session_event.event_time;
-            delay = delay*1000; //to seconds
-            delay = delay/$scope.playback_speed;
-            console.log('delay next event: '+delay);
+            if($scope.playback_speed!='No Delay'){
+                var delay = next_event.event_time -  $scope.current_session_event.event_time;
+                delay = delay*1000; //to seconds
+                delay = delay/$scope.playback_speed;
+                console.log('delay next event: '+delay);
+            }
+            else{
+                console.log('playback in no delay');
+                delay = 200;
+            }
 
             $timeout(
                 function(){

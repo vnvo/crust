@@ -863,6 +863,7 @@ def handle_ssh_connection(server_account, sshgw, remote_host, userchan, spinner)
 
     spinner.stop("... And We Are Connected.")
     appchan = None
+    app.get_transport().set_keepalive(60)
 
     if userchan.requested_action == 'sftp':
         appchan = app.get_transport().open_session()

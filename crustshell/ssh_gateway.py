@@ -257,7 +257,7 @@ class InteractiveLogger(object):
         self.exec_cmd = exec_cmd
         self.output_name = None
         self.output = None
-        self.terminal = Terminal(self.tty_size[0], self.tty_size[1]*2)
+        self.terminal = Terminal(self.tty_size[1], self.tty_size[0])#rows(height), cols(width)
         self.debug_out = open('/tmp/tt.log', 'w')
         self.debug_out.write(css_renditions()+'\n\n\n')
         self.session = None
@@ -272,10 +272,10 @@ class InteractiveLogger(object):
     def _write_session_event(self, content):
         if self.tty_size != self.sshgw.tty_size:
             self.tty_size = self.sshgw.tty_size
-            self.terminal.resize(self.tty_size[0], self.tty_size[1]*2)
+            self.terminal.resize(self.tty_size[1], self.tty_size[0])
 
         if self.tty_size is None:
-            self.tty_size(80,80)
+            self.tty_size(80,60)
 
         save_cli_session_event(self.session, time.time(),
                                self.sshgw.tty_size, content)

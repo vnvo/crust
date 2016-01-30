@@ -25,6 +25,8 @@
         $scope.playback_speed = 'No Delay';
         $scope.session_events = [];
         $scope.session_status = null;
+        vm.session_created_at = null;
+        vm.session_terminated_at = null;
         $scope.last_event_epoch = null;
 
 
@@ -122,6 +124,13 @@
             );
         };
 
+        function getSession(){
+            CrustSessions.get($scope.session_id).then(
+                function(data, status, headers, config){},
+                function(data, status, headers, config){}
+            );
+        }
+
         $scope.getNextPage = function(){
             CrustSessions.logs(
                 $scope.session_id, $scope.page_size,
@@ -130,6 +139,8 @@
                 function(data, status, headers, config){
                     $scope.session_events = data.data.events;
                     $scope.session_status = data.data.status;
+                    vm.session_created_at = data.data.session_created_at;
+                    vm.session_terminated_at = data.data.session_terminated_at;
                     $timeout(
                         function(){console.log($scope.session_events.length);},
                         100

@@ -38,7 +38,7 @@
         }
 
         function getSession(session_id){
-            return $http.get('/api/v1/crustsessions/'+ru_acl_id+'/');
+            return $http.get('/api/v1/crustsessions/'+session_id+'/');
         }
 
         function getActiveCount(){
@@ -53,7 +53,7 @@
         function getSessionLogs(session_id, pageSize, page, last_event_id){
             return $http.get(
                 '/api/v1/crustsessions/'+session_id+'/log/',
-                {params:{page_size: pageSize, page:page, last_event_epoch:last_event_id}}
+                {params:{page_size: pageSize, page:page, last_event_id:last_event_id}}
             );
         }
     }

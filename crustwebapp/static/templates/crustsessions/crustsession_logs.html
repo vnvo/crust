@@ -26,7 +26,8 @@
                 <i class="fa fa-forward"></i> <strong>4X</strong>
             </button>
         </div>
-        <div class="btn-group" role="group">
+        <div class="btn-group" role="group"
+             ng-show="session_status && session_status.indexOf('CLOSED')==-1">
             <button ng-click="killSession()" class="btn btn-danger" title="Kill this Session">
                 <i class="fa fa-stop fa-xs"></i>
             </button>
@@ -35,6 +36,10 @@
     <div style="padding:7px 0 14px 0;">
         <h3 class="label label-success" style="padding:7px;">
             Status:<span class="badge">{{session_status}}</span></h3>
+        <h3 class="label label-success" style="padding:7px;" ng-show="vm.session_created_at">
+            Start:<span class="badge">{{vm.session_created_at}}</span></h3>
+        <h3 class="label label-success" style="padding:7px;" ng-show="vm.session_terminated_at">
+            End:<span class="badge">{{vm.session_terminated_at}}</span></h3>
         <h3 class="label label-success" ng-show="session_play" style="padding:7px;">
             Event ID:<span class="badge">{{current_session_event.id}}</span></h3>
         <h3 class="label label-success" ng-show="session_play" style="padding:7px;">

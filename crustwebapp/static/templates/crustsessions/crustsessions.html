@@ -1,3 +1,92 @@
 <br/>
 <br/>
-<div class="gridStyle" ng-grid="gridOptions"></div>
+<div>
+    <table style="margin:auto;">
+        <tr>
+            <td>Start From:</td>
+            <td>
+                <p class="input-group">
+                    <input class="form-control" datepicker-popup  ng-model="vm.start_from"
+                           is-open="vm.start_from_open" close-text="Close"
+                           style="width:130px;"/>
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="vm.toggleStartFrom()">
+                            <i class="fa fa-calendar"></i></button>
+                    </span>
+                </p>
+            </td>
+            <td width="20px"></td>
+            <td>Command:</td><td>
+                <input ng-model="vm.command" class="form-control" style="width: 160px;"></td>
+            <td width="20px"></td>
+            <td>Server:</td>
+            <td>
+                <input type="text" class="form-control" id="remoteuseracl__server"
+                       autocomplete="off" data-ng-model="vm.server"
+                       typeahead="item as item.server_name for item in vm.getServersSuggestion($viewValue)"
+                       typeahead-wait-ms=1000 typeahead-editable=false
+                       typeahead-loading="loadingServers"
+                       style="width: 160px;" />
+                <i ng-show="loadingServers" class="fa fa-spinner fa-spin"></i>
+            </td>
+
+        </tr>
+        <tr>
+            <td>Start To:</td>
+            <td>
+                <p class="input-group">
+                    <input class="form-control" datepicker-popup  ng-model="vm.start_to"
+                           is-open="vm.start_to_open" close-text="Close" style="width:130px;" />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="vm.toggleStartTo()">
+                            <i class="fa fa-calendar"></i></button>
+                    </span>
+                </p>
+            </td>
+            <td width="20px"></td>
+            <td>Remote User:</td>
+            <td>
+                <input type="text" class="form-control" id="remotuseracl__remote_user"
+                       autocomplete="off" data-ng-model="vm.remote_user"
+                       typeahead="item as item.username for item in vm.getRemoteUsersSuggestion($viewValue) | filter:$viewValue"
+                       typeahead-wait-ms=1000
+                       typeahead-loading="loadingRemoteUsers"
+                       style="width: 160px;" />
+                <i ng-show="loadingRemoteUsers" class="fa fa-spinner fa-spin"></i>
+            </td>
+            <td width="20px"></td>
+            <td>Server Account:</td>
+            <td>
+                <input type="text" class="form-control" id="remoteuseracl__server_account"
+                       autocomplete="off" data-ng-model="vm.server_account"
+                       typeahead="item as item.server_account_repr for item in vm.getServerAccountsSuggestion($viewValue)"
+                       typeahead-wait-ms=1000 typeahead-editable=false
+                       typeahead-loading="loadingServerAccounts"
+                       style="width: 160px;" />
+                <i ng-show="loadingServerAccounts" class="fa fa-spinner fa-spin"></i>
+            </td>
+
+        </tr>
+
+        <tr>
+            <td></td><td></td>
+            <td width="20px"></td>
+            <td></td><td></td>
+            <td width="20px"></td>
+            <td></td>
+            <td>
+                <button class="btn btn-success btn-md" title="Search"
+                        data-placement="bottom" data-toggle="tooltip" type="button"
+                        ng-click="vm.getCrustSessions()"
+                        style="float: right;"
+                        >
+                    <i class="fa fa-search"></i>
+                    Search
+                </button>
+            </td>
+        </tr>
+    </table>
+
+</div>
+<br/>
+<div class="gridStyle" ng-grid="gridOptions" style="margin:auto;width:100%;"></div>

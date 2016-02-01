@@ -19,11 +19,19 @@
 
         return CrustSessions;
 
-        function getAllSessions(pageSize, page, searchFilter, ordering){
+        function getAllSessions(pageSize, page, searchFilter,
+                                start_from, start_to, command,
+                                remote_user, server_account, server,
+                                ordering){
             return $http.get(
                 '/api/v1/crustsessions/',{
-                    params: {page_size: pageSize, page: page,
-                             search_filter: searchFilter, ordering:ordering}
+                    params: {
+                        page_size: pageSize, page: page, created_at__gte:start_from,
+                        created_at__lte:start_to, search_filter: searchFilter,
+                        crustsessionevent__content__icontains:command,
+                        remoteuser:remote_user, serveraccount__icontains:server_account,
+                        server:server, ordering:ordering
+                    }
                 }
             );
         }

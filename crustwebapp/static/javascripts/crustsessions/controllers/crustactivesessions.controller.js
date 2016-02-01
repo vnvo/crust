@@ -6,13 +6,77 @@
         .controller('CrustActiveSessionsController', CrustSessionsController);
 
     CrustSessionsController.$inject = [
-        '$scope', '$interval', 'CrustSessions', 'Snackbar', 'ngDialog'
+        '$scope', '$interval', 'CrustSessions', 'Snackbar', 'ngDialog',
+        '$timeout', 'Servers', 'ServerAccounts', 'RemoteUsers'
     ];
 
-    function CrustSessionsController($scope, $interval, CrustSessions, Snackbar, ngDialog){
+    function CrustSessionsController($scope, $interval, CrustSessions, Snackbar,
+                                     ngDialog, $timeout,Servers, ServerAccounts,
+                                     RemoteUsers){
         var vm = this;
+
+        $scope.dateOptions = {};
+        vm.start_from_open = false;
+        vm.start_to_open = false;
+        vm.toggleStartFrom = function(){
+            $timeout(function(){
+                vm.start_from_open = !vm.start_from_open;
+            });
+        };
+        vm.toggleStartTo = function(){
+            $timeout(function(){
+                vm.start_to_open = !vm.start_to_open;
+            });
+        };
+
+        vm.start_from = null;
+        vm.start_to = null;
+        vm.command = null;
+        vm.remote_user = null;
+        vm.server = null;
+        vm.server_account = null;
+
+        vm.getCrustSessions = getCrustSessions;
+        vm.getRemoteUsersSuggestion = getRemoteUsersSuggestion;
+        vm.getServersSuggestion = getServersSuggestion;
+        vm.getServerAccountsSuggestion = getServerAccountsSuggestion;
+
+        function getServersSuggestion($viewValue){
+            return Servers.getSuggestion($viewValue).then(
+                getServerSuggestionSuccess, getServerSuggestionError
+            );
+            function getServerSuggestionSuccess(data, status, headers, config){
+                return data.data.results;
+            }
+            function getServerSuggestionError(data, status, headers, config){
+                Snackbar.error('Can not get Servers data.');
+            }
+        }
+        function getServerAccountsSuggestion($viewValue){
+            return ServerAccounts.getSuggestion($viewValue).then(
+                getSASuggestionSuccess, getSASuggestionError
+            );
+            function getSASuggestionSuccess(data, status, headers, config){
+                return data.data.results;
+            }
+            function getSASuggestionError(data, status, headers, config){
+                Snackbar.error('Can not get Server Accounts data');
+            }
+        }
+        function getRemoteUsersSuggestion($viewValue){
+            return RemoteUsers.getSuggestion($viewValue).then(
+                getRUSuggestionSuccess, getRUSuggestionError
+            );
+            function getRUSuggestionSuccess(data, status, headers, config){
+                return data.data.results;
+            }
+            function getRUSuggestionError(data, status, headers, config){
+                Snackbar.error('Can not get Remote Users data.');
+            }
+        }
+
         vm.stopTimer = stopTimer;
-        var timer = $interval(getCrustSessions, 5000);
+        var timer = $interval(getCrustSessions, 7000);
         $scope.$on('$destroy', function(){
             vm.stopTimer();
         });
@@ -79,7 +143,13 @@
             setTimeout(function () {
                 var data;
 
-                CrustSessions.allActive(pageSize, page, searchText, ordering).then(
+                CrustSessions.allActive(
+                    pageSize, page, searchText, vm.start_from, vm.start_to,
+                    vm.command, (vm.remote_user==null ? null:vm.remote_user['username']),
+                    (vm.server_account==null ? null:vm.server_account['server_account_repr']),
+                    (vm.server==null ? null:vm.server['server_name']),
+                    ordering
+                ).then(
                     getAllSessionsSuccess, getAllSessionsError
                 );
                 function getAllSessionsSuccess(data, status, headers, config){
@@ -136,12 +206,13 @@
                 //{field: 'session_id', displayName: 'Session ID', width: 35},
                 {field: 'created_at', displayName: 'Start Time', width: 145},
                 {field: 'remoteuser', displayName: 'Remote User', width: 100},
-                {field: 'serveraccount', displayName: 'Server Account', width: 180},
+                {field: 'serveraccount', displayName: 'Server Account', width: 160},
+                {field: 'server', displayName: 'Server', width: 160},
                 {field: 'client_ip', displayName: 'Client IP', width: 120},
                 {field: 'status', displayName: 'Status', width: 85,
                  cellTemplate: '/static/templates/crustsessions/grid_cell.status.templ.html'
                 },
-                {field: 'terminated_at', displayName: 'Stop Time', width: 145},
+                //{field: 'terminated_at', displayName: 'Stop Time', width: 145},
                 {field: 'termination_cause', displayName: 'Termination Cause', width: 120},
                 {field: '', displayName: 'Actions', width:50,
                  cellTemplate: '/static/templates/crustsessions/grid_cell.actions.templ.html'

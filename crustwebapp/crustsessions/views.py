@@ -40,7 +40,7 @@ class CrustCLISessionViewSet(viewsets.ModelViewSet):
             queryset = queryset.exclude(status__icontains='established')
 
         ordering = self.request.query_params.get('ordering', '-created_at')
-        queryset = queryset.order_by(ordering)
+        queryset = queryset.order_by(ordering).distinct()
 
         return queryset
 

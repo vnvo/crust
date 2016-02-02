@@ -75,14 +75,20 @@
             <td width="20px"></td>
             <td></td>
             <td>
-                <button class="btn btn-success btn-md" title="Search"
-                        data-placement="bottom" data-toggle="tooltip" type="button"
-                        ng-click="vm.getCrustSessions()"
-                        style="float: right;"
-                        >
-                    <i class="fa fa-search"></i>
-                    Search
-                </button>
+                <div class="btn-group">
+                    <button class="btn btn-warning btn-md" title="Reset"
+                            data-placement="bottom" data-toggle="tooltip" type="button"
+                            ng-click="vm.reset()">
+                        <i class="fa fa-rotate-left"></i>
+                        Reset
+                    </button>
+                    <button class="btn btn-success btn-md" title="Search"
+                            data-placement="bottom" data-toggle="tooltip" type="button"
+                            ng-click="vm.getCrustSessions()">
+                        <i class="fa fa-search"></i>
+                        Search
+                    </button>
+                </div>
             </td>
         </tr>
     </table>

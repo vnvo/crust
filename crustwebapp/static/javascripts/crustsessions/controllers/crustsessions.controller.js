@@ -41,6 +41,16 @@
         vm.getServersSuggestion = getServersSuggestion;
         vm.getServerAccountsSuggestion = getServerAccountsSuggestion;
 
+        vm.reset = function(){
+            vm.start_from = null;
+            vm.start_to = null;
+            vm.command = null;
+            vm.remote_user = null;
+            vm.server = null;
+            vm.server_account = null;
+            getCrustSessions();
+        };
+
         function getServersSuggestion($viewValue){
             return Servers.getSuggestion($viewValue).then(
                 getServerSuggestionSuccess, getServerSuggestionError

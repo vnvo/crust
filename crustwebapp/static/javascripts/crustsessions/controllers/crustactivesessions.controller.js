@@ -213,7 +213,7 @@
                  cellTemplate: '/static/templates/crustsessions/grid_cell.status.templ.html'
                 },
                 //{field: 'terminated_at', displayName: 'Stop Time', width: 145},
-                {field: 'termination_cause', displayName: 'Termination Cause', width: 120},
+                {field: 'termination_cause', displayName: 'Termination Cause', width: 140},
                 {field: '', displayName: 'Actions', width:50,
                  cellTemplate: '/static/templates/crustsessions/grid_cell.actions.templ.html'
                 }

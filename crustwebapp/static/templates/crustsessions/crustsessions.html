@@ -23,7 +23,7 @@
             <td>
                 <input type="text" class="form-control" id="remoteuseracl__server"
                        autocomplete="off" data-ng-model="vm.server"
-                       typeahead="item as item.server_name for item in vm.getServersSuggestion($viewValue)"
+                       typeahead="item as item.server_name+'('+item.server_ip+')' for item in vm.getServersSuggestion($viewValue)"
                        typeahead-wait-ms=1000 typeahead-editable=false
                        typeahead-loading="loadingServers"
                        style="width: 160px;" />

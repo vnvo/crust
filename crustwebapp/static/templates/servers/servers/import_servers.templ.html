@@ -1,0 +1,23 @@
+<br/>
+<form role="form" ng-submit="vm.submit()" class="form-horizontal">
+    <div class="form-group">
+        <label for="server_csv_file" class="control-label col-xs-4">CSV File</label>
+        <div class="col-xx-7">
+            <input type="file" class="btn btn-primary" csv-reader="csvContent">
+        </div>
+    </div>
+    <div class="form-group" ng-show="csvContent.length">
+        <div class="col-xs-12" style="text-align:center;">
+            <button type="submit" ng-click="vm.submitFile()" class="btn btn-info">
+                Start Import
+            </button>
+        </div>
+    </div>
+</form>
+<progressbar class="progress-striped active" max="vm.total_entries"
+             value="done_entries" ng-show="vm.importing" type="success">
+    <span style="color:black; white-space:nowrap;">{{vm.done_entries}} / {{vm.total_entries}}</span>
+</progressbar>
+<div ng-show="vm.importing" style="max-height:100px; overflow:scroll;">
+    <div ng-repeat="msg in vm.import_messages">{{msg}}</div>
+</div>

@@ -99,3 +99,29 @@ function space2nbsp(){
         return text ? text.replace(/ /g, '\u00a0') : '';
     };
 };
+
+/// register directives
+angular
+    .module('crust')
+    .directive('csvReader', function() {
+        return {
+            scope: {
+                csvReader:"="
+            },
+            link: function(scope, element) {
+                $(element).on('change', function(changeEvent) {
+                    var files = changeEvent.target.files;
+                    if (files.length) {
+                        var r = new FileReader();
+                        r.onload = function(e) {
+                            var contents = e.target.result;
+                            scope.$apply(function () {
+                                scope.csvReader = contents;
+                            });
+                        };
+                        r.readAsText(files[0]);
+                    }
+                });
+            }
+        };
+    });

@@ -9,19 +9,19 @@
         .controller('ServersController', ServersController);
 
     ServersController.$inject = [
-        '$scope', 'Servers', 'Snackbar', 'ngDialog', 'ServerGroups'
+        '$scope', 'Servers', 'Snackbar',
+        'ngDialog', 'ServerGroups', '$location'
     ];
 
 
-    function ServersController($scope, Servers, Snackbar, ngDialog, ServerGroups){
+    function ServersController($scope, Servers, Snackbar,
+                               ngDialog, ServerGroups, $location){
         var vm = this;
-
+        console.log($location.search().server_group);
         $scope.deleteServer = deleteServer;
         $scope.startUpdateDialog = startUpdateDialog;
         vm.server_group_filter = null;
         vm.ip_filter = null;
-
-        getServerGroups();
 
         $scope.$watch('vm.server_group_filter',
                       function (newVal, oldVal) {
@@ -33,6 +33,23 @@
                           if (newVal !== oldVal)
                               getServers();
                       }, true);
+
+        if($location.search().server_group)
+            setServerGroupFilter($location.search().server_group);
+        else
+            getServerGroups();
+
+
+        function setServerGroupFilter(server_group_id){
+            ServerGroups.get(server_group_id).then(
+                function(data, status, headers, config){
+                    vm.server_group_filter = data.data;
+                },
+                function(data, status, headers, config){
+                    console.log('Could not load server group: '+server_group_id);
+                }
+            );
+        }
 
         function getServerGroups(){
             ServerGroups.all(200, 1).then(getSGSuccess, getSGError);

@@ -1,5 +1,10 @@
 <div class="ngCelltext">
     <div class="btn-group">
+        <a class="btn btn-info" title="View Servers"
+           ng-href="/servers?server_group={{row.getProperty('id')}}"
+           target="blank">
+            <i class="fa fa-list fa-xs"></i>
+        </a>
         <button class="btn btn-primary" title="Edit Server Group"
                 ng-click="startSGUpdateDialog($event, row)">
             <i class="fa fa-pencil fa-xs"></i>

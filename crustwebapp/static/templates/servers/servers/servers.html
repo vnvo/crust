@@ -1,14 +1,20 @@
 <br/>
-<button
-  class="btn btn-success btn-lg"
-  title="Add New Server" data-placement="bottom"
-  data-toggle="tooltip"
-  type="button"
-  ng-dialog="/static/templates/servers/servers/new_server.templ.html"
-  ng-dialog-controller="NewServerController as vm">
-    <i class="fa fa-plus"></i>
-    Add New Server
-</button>
+<div class="btn-group">
+    <button class="btn btn-success btn-lg" title="Add New Server"
+            data-placement="bottom" data-toggle="tooltip" type="button"
+            ng-dialog="/static/templates/servers/servers/new_server.templ.html"
+            ng-dialog-controller="NewServerController as vm" >
+        <i class="fa fa-plus"></i>  Add New Server
+    </button>
+    <button class="btn btn-info btn-lg" title="Import Servers From CSV Files"
+            data-placement="bottom" data-toggle="tooltip" type="button"
+            ng-dialog="/static/templates/servers/servers/import_servers.templ.html"
+            ng-dialog-controller="ImportServersController as vm" >
+        <i class="fa fa-file-excel-o"></i>  Import Servers (CSV)
+    </button>
+
+</div>
+
 <br/><br/>
 <div>
     <table style="margin:auto;">

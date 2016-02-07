@@ -34,10 +34,9 @@
                               getServers();
                       }, true);
 
+        getServerGroups();
         if($location.search().server_group)
             setServerGroupFilter($location.search().server_group);
-        else
-            getServerGroups();
 
 
         function setServerGroupFilter(server_group_id){

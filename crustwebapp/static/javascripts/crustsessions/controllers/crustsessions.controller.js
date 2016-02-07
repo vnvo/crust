@@ -56,6 +56,8 @@
                 getServerSuggestionSuccess, getServerSuggestionError
             );
             function getServerSuggestionSuccess(data, status, headers, config){
+                if(!data.data.results.length)
+                    vm.server = null;
                 return data.data.results;
             }
             function getServerSuggestionError(data, status, headers, config){
@@ -67,6 +69,8 @@
                 getSASuggestionSuccess, getSASuggestionError
             );
             function getSASuggestionSuccess(data, status, headers, config){
+                if(!data.data.results.length)
+                    vm.server_account = null;
                 return data.data.results;
             }
             function getSASuggestionError(data, status, headers, config){
@@ -78,13 +82,14 @@
                 getRUSuggestionSuccess, getRUSuggestionError
             );
             function getRUSuggestionSuccess(data, status, headers, config){
+                if(!data.data.results.length)
+                    vm.remote_user = null;
                 return data.data.results;
             }
             function getRUSuggestionError(data, status, headers, config){
                 Snackbar.error('Can not get Remote Users data.');
             }
         }
-
 
         //getRuACLs();
         $scope.killSession = function(event, grid_row){

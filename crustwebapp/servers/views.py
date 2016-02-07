@@ -140,7 +140,10 @@ class ServersViewSet(viewsets.ModelViewSet):
         hint = self.request.query_params.get('hint', None)
         search_filter = self.request.query_params.get('search_filter', None)
         if hint:
-            queryset = queryset.filter(server_name__icontains=hint)
+            queryset = queryset.filter(
+                Q(server_name__icontains=hint)|
+                Q(server_ip__icontains=hint)
+            )
         if search_filter:
             queryset = queryset.filter(
                 Q(server_group__group_name__icontains=search_filter)|
@@ -177,8 +180,20 @@ class ServersViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         data = request.data
+        print data
         server_group = data.pop('server_group')
-        server_group_obj = ServerGroup.objects.get(id=server_group['id'])
+        print type(server_group)
+        if isinstance(server_group, str) or isinstance(server_group, unicode):
+            server_group_obj = ServerGroup.objects.filter(group_name=server_group)
+            if server_group_obj:
+                server_group_obj = server_group_obj[0]
+            else:# create the group
+                server_group_obj = ServerGroup(group_name=server_group, supervisor=request.user)
+                server_group_obj.save()
+                print 'server group created ', server_group_obj
+        else:
+            server_group_obj = ServerGroup.objects.get(id=server_group['id'])
+
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save(server_group=server_group_obj)
@@ -481,3 +496,23 @@ class ServerAccountMapsViewSet(viewsets.ModelViewSet):
         else:
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+############## All Server Account For a server
+class AllServerAccountsViewSet(viewsets.ModelViewSet):
+    serializer_class = ServerAccountSerializer
+    queryset = ServerAccount.objects
+
+    def list(self, request):
+        """
+        Return All available Server Accounts for the given server_id either
+        by direct mapping (ServerAccountMap) or by ServerGroupAccount
+        """
+        server = Server.objects.get(id=int(request.query_params.get('server_id')))
+        sa_by_server = ServerAccount.serveraccountmap_set.filter(server=server)
+        print sa_by_server
+        sa_by_servergroup = ServerAccount.servergroupaccount_set.filter(
+            server_group=server.server_group)
+        print sa_by_servergroup
+
+        serializer = self.serializer_class(queryset, many=True)
+        return Response({'events':serializer.data, 'status':session_obj.status})

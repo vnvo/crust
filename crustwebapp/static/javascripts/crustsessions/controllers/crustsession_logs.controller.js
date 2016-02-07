@@ -74,6 +74,7 @@
                 if($scope.session_status.indexOf('CLOSED')!=-1){
                     console.log('end of session');
                     $scope.session_play = false;
+                    $scope.current_session_event_index = 0;
                     return;
                 }else{
                     console.log('get next page ...');

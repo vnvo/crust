@@ -8,3 +8,4 @@ class RemoteUser(models.Model):
     email = models.CharField(max_length=256, blank=True)
     cell_phone = models.CharField(max_length=256, blank=True)
     comment = models.TextField(blank=True, default='')
+    allow_ip = models.TextField(blank=True, null=True)

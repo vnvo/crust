@@ -58,7 +58,17 @@
         </div>
     </div>
     <div class="form-group">
-        <label for="remoteuser__comment" class="control-label col-xs-4">Comment</label>
+        <label for="remoteuser__allow_ip" class="control-label col-xs-4">
+            Allow IP</label>
+        <div class="col-xs-7">
+            <textarea class="form-control" data-ng-model="vm.allow_ip"
+                      id="remoteuser__allow_ip">
+            </textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remoteuser__comment" class="control-label col-xs-4">
+            Comment</label>
         <div class="col-xs-7">
             <textarea class="form-control" data-ng-model="vm.comment"
                       id="remoteuser__comment">

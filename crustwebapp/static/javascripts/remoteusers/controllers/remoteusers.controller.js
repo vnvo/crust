@@ -169,7 +169,7 @@
                 {field: 'is_locked', displayName: 'Is Locked', width: 80,
                  cellTemplate: '/static/templates/remoteusers/grid_cell.is_locked.templ.html'
                 },
-                {field: 'sshv2_public_key', displayName: 'SSHv2 Public Key', width: 220},
+                {field: 'allow_ip', displayName: 'Allow IP List', width: 200},
                 {field: 'comment', displayName: 'Comment', width: 175},
                 {field: '', displayName: 'Actions',
                  cellTemplate: '/static/templates/remoteusers/grid_cell.actions.templ.html'

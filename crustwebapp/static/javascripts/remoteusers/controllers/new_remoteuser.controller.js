@@ -16,7 +16,7 @@
 
         function submit(){
             RemoteUsers.create(
-                {username: vm.username, password: vm.password,
+                {username: vm.username, password: vm.password, allow_ip:vm.allow_ip,
                  is_locked: vm.is_locked, sshv2_public_key: vm.sshv2_public_key,
                  comment: vm.comment, email: vm.email, cell_phone: vm.cell_phone}
             ).then(submitRuSuccess, submitRuError);

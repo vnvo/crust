@@ -31,6 +31,7 @@
                 vm.is_locked = ru_data.is_locked;
                 vm.sshv2_public_key = ru_data.sshv2_public_key;
                 vm.comment = ru_data.comment;
+                vm.allow_ip = ru_data.allow_ip;
             }
             function getRuInfoError(data, status, headers, config){
                 Snackbar.error('Can not get Remote User Info.');
@@ -43,7 +44,7 @@
                 {username: vm.username, password: vm.password,
                  is_locked: vm.is_locked, email: vm.email,
                  cell_phone: vm.cell_phone, comment: vm.comment,
-                 sshv2_public_key: vm.sshv2_public_key}
+                 sshv2_public_key: vm.sshv2_public_key, allow_ip:vm.allow_ip}
             ).then(updateRuSuccess, updateRuError);
 
             function updateRuSuccess(data, status, headers, config){
@@ -55,7 +56,6 @@
                 Snackbar.error('Can not update Remote User, Check Input.');
             }
         }
-
     }
 
 })();

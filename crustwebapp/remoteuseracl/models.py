@@ -1,8 +1,22 @@
+from datetime import datetime
 from django.db import models
+from django.db.models import Q
 from servers.models import ServerAccount, ServerGroup, Server
 from servers.models import ServerGroupAccount, ServerAccountMap
 from remoteusers.models import RemoteUser
 from commandgroups.models import CommandGroup
+
+dow = dict(
+    zip(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        range(7)))
+dow_nums = {v:k for k,v in dow.iteritems()}
+
+def get_dow_name(day_num):
+    return dow_nums.get(int(day_num))
+
+def get_dow_number(day_name):
+    return dow.get(day_name)
+
 
 class RemoteUserACL(models.Model):
     remote_user = models.ForeignKey(RemoteUser)
@@ -12,6 +26,26 @@ class RemoteUserACL(models.Model):
     command_group = models.ForeignKey(CommandGroup, blank=True, null=True)
     acl_action = models.CharField(max_length=32, default='allow')
     is_active = models.BooleanField(default=True)
+    limit_hours_start = models.IntegerField(null=True, blank=True, default=-1)
+    limit_hours_end = models.IntegerField(null=True, blank=True, default=-1)
+    limit_days = models.CharField(blank=True, null=True, max_length=32)
+
+    def __unicode__(self):
+        return 'RU-ACL(%s): %s'%(
+            self.id, self.remote_user.username,
+        )
+
+    @property
+    def get_limit_hours_repr(self):
+        if self.limit_hours_start > -1:
+            return '%s - %s'%(self.limit_hours_start, self.limit_hours_end)
+        return ''
+    @property
+    def get_limit_days_repr(self):
+        if self.limit_days:
+            l = [int(item) for item in self.limit_days.split(',')]
+            return ','.join(get_dow_name(item) for item in l)
+        return ''
 
     @classmethod
     def get_cooked_acls(cls, remote_user):
@@ -50,7 +84,15 @@ class RemoteUserACL(models.Model):
 
     @classmethod
     def get_filtered_server_groups(cls, remote_user):
-        acl_list = cls.objects.filter(remote_user=remote_user).filter(is_active=True).all()
+        now = datetime.now()
+        wday = str(now.weekday())
+        acl_list = cls.objects.filter(
+            remote_user=remote_user
+        ).filter(is_active=True).filter(
+            Q(Q(limit_hours_start__lte=now.hour)&
+              Q(limit_hours_end__gt=now.hour))|
+            Q(limit_hours_start=-1)
+        ).filter(Q(limit_days__contains=wday)|Q(limit_days=None))
         allow_list = set()
         deny_list = set()
 
@@ -86,7 +128,16 @@ class RemoteUserACL(models.Model):
 
     @classmethod
     def get_filtered_servers_by_group(cls, remote_user, server_group):
-        acl_list = cls.objects.filter(remote_user=remote_user).filter(is_active=True).all()
+        print 'get servers by group: ',remote_user, server_group
+        now = datetime.now()
+        wday = str(now.weekday())
+        acl_list = cls.objects.filter(
+            remote_user=remote_user
+        ).filter(is_active=True).filter(
+            Q(Q(limit_hours_start__lte=now.hour)&
+              Q(limit_hours_end__gt=now.hour))|
+            Q(limit_hours_start=-1)
+        ).filter(Q(limit_days__contains=wday)|Q(limit_days=None)).all()
         allow_list = set()
         deny_list = set()
 
@@ -97,14 +148,15 @@ class RemoteUserACL(models.Model):
 
         for acl in acl_list:
             if acl.server_account:
-                server_account_maps = ServerAccountMap.objects.filter(
+                server_group_accounts = ServerGroupAccount.objects.filter(
                     server_account=acl.server_account
-                ).filter(server__server_group=server_group)
+                ).filter(server_group=server_group)
 
-                if not server_account_maps:
+                if not server_group_accounts:
                     continue
-                for sam in server_account_maps:
-                    add_server_from_serveraccount(acl, sam.server)
+                for sga in server_group_accounts:
+                    for server in sga.server_group.server_set.all():
+                        add_server_from_serveraccount(acl, server)#@todo clean this
 
             elif acl.server:
                 if acl.server.server_group != server_group:
@@ -116,6 +168,7 @@ class RemoteUserACL(models.Model):
                     deny_list.add(acl.server)
 
             else:
+                print acl
                 if acl.server_group != server_group:
                     continue
 
@@ -127,7 +180,15 @@ class RemoteUserACL(models.Model):
 
     @classmethod
     def get_filtered_server_accounts_by_server(cls, remote_user, server):
-        acl_list = cls.objects.filter(remote_user=remote_user).filter(is_active=True).all()
+        now = datetime.now()
+        wday = str(now.weekday())
+        acl_list = cls.objects.filter(
+            remote_user=remote_user
+        ).filter(is_active=True).filter(
+            Q(Q(limit_hours_start__lte=now.hour)&
+              Q(limit_hours_end__gt=now.hour))|
+            Q(limit_hours_start=-1)
+        ).filter(Q(limit_days__contains=wday)|Q(limit_days=None)).all()
         allow_list = set()
         deny_list = set()
 
@@ -155,6 +216,8 @@ class RemoteUserACL(models.Model):
                     deny_list.add(sa)
 
             elif acl.server:
+                if acl.server != server:
+                    continue
                 #server_account_maps = ServerAccountMap.objects.filter(server=server)
                 #if not server_account_maps:
                 #    continue
@@ -230,29 +293,29 @@ class RemoteUserACL(models.Model):
 
         server_account.server = server #@todo: dirty, fix this mechanism
         #check acls
-        acl_by_account = RemoteUserACL.objects.filter(
+        now = datetime.now()
+        wday = str(now.weekday())
+        acl_by_remote_user = RemoteUserACL.objects.filter(
             remote_user=remote_user
+        ).filter(is_active=True).filter(
+            acl_action='allow'
         ).filter(
-            server_account=server_account
-        ).filter(acl_action='allow').filter(is_active=True)
+            Q(Q(limit_hours_start__lte=now.hour)&
+              Q(limit_hours_end__gt=now.hour))|
+            Q(limit_hours_start=-1)
+        ).filter(Q(limit_days__contains=wday)|Q(limit_days=None))
+
+        acl_by_account = acl_by_remote_user.filter(server_account=server_account)
         if acl_by_account:
             server_account.apply_acl = acl_by_account[0]
             return server_account
 
-        acl_by_server = RemoteUserACL.objects.filter(
-            remote_user=remote_user
-        ).filter(
-            server=server
-        ).filter(acl_action='allow').filter(is_active=True)
+        acl_by_server = acl_by_remote_user.filter(server=server)
         if acl_by_server:
             server_account.apply_acl = acl_by_server[0]
             return server_account
 
-        acl_by_server_group = RemoteUserACL.objects.filter(
-            remote_user=remote_user
-        ).filter(
-            server_group=server.server_group
-        ).filter(acl_action='allow').filter(is_active=True)
+        acl_by_server_group = acl_by_remote_user.filter(server_group=server.server_group)
         if acl_by_server_group:
             server_account.apply_acl = acl_by_server_group[0]
             return server_account

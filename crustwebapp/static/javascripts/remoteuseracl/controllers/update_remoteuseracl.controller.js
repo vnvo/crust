@@ -16,6 +16,9 @@
                                            RemoteUsers, CommandGroups, Snackbar){
         var vm = this;
 
+        vm.limit_days_data = {
+            5:false, 6:false, 0:true,
+            1:false, 2:false, 3:false, 4:false};
         vm.getRemoteUsersSuggestion = getRemoteUsersSuggestion;
         vm.getServerGroupsSuggestion = getServerGroupsSuggestion;
         vm.getServersSuggestion = getServersSuggestion;
@@ -24,30 +27,54 @@
         vm.update = update;
         getRuACLInfo();
 
+        function prepLimitDays(){
+            angular.forEach(
+                vm.limit_days.split(','),
+                function(val, index){
+                    vm.limit_days_data[parseInt(val)] = true;
+                }
+            );
+        }
+        function getLimitDays(){
+            var limit_days = [];
+            angular.forEach(
+                vm.limit_days_data,
+                function(val, key){
+                    if(val==true)
+                        limit_days.push(key);
+                });
+            return limit_days.join(',');
+        }
+
         function getRuACLInfo(){
             RemoteUserACLs.get($scope.update_ru_acl_id).then(
                 getRuACLInfoSuccess, getRuACLInfoError
             );
             function getRuACLInfoSuccess(data, status, headers, config){
-                vm.remoteuseracl_id = data.data.id;
-                vm.remote_user = data.data.remote_user;
+                var info = data.data;
+                vm.remoteuseracl_id = info.id;
+                vm.remote_user = info.remote_user;
+                vm.limit_hours_start = info.limit_hours_start;
+                vm.limit_hours_end = info.limit_hours_end;
+                vm.limit_days = info.limit_days;
+                prepLimitDays();
 
-                if(data.data.server_group){
-                    vm.server_group = data.data.server_group;
+                if(info.server_group){
+                    vm.server_group = info.server_group;
                     vm.match_type = 'servergroup';
                 }
-                else if(data.data.server){
-                    vm.server = data.data.server;
+                else if(info.server){
+                    vm.server = info.server;
                     vm.match_type = 'server';
                 }
-                else if(data.data.server_account){
-                    vm.server_account = data.data.server_account;
+                else if(info.server_account){
+                    vm.server_account = info.server_account;
                     vm.match_type = 'serveraccount';
                 }
 
-                vm.command_group = data.data.command_group;
-                vm.is_active = data.data.is_active;
-                vm.acl_action = data.data.acl_action;
+                vm.command_group = info.command_group;
+                vm.is_active = info.is_active;
+                vm.acl_action = info.acl_action;
             }
             function getRuACLInfoError(data, status, headers, config){
                 Snackbar.error(
@@ -123,6 +150,9 @@
 
         function update(){
             var update_acl_info = {
+                limit_hours_start: vm.limit_hours_start,
+                limit_hours_end: vm.limit_hours_end,
+                limit_days: getLimitDays(),
                 remote_user: vm.remote_user,
                 command_group: vm.command_group,
                 acl_action: vm.acl_action,

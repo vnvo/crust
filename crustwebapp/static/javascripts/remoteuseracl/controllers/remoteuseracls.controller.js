@@ -191,10 +191,12 @@
                  cellTemplate: '<div class="ngCellText" data-ng-class="col.colIndex()"><span>{{row.rowIndex + 1}}</span></div>'
                 },
                 {field: 'id', displayName: 'ID', width: 35},
-                {field: 'remote_user.username', displayName: 'Remote User', width: 110},
-                {field: 'server_group.group_name', displayName: 'Server Group', width: 120},
+                {field: 'remote_user.username', displayName: 'Remote User', width: 100},
+                {field: 'limit_hours_repr', displayName:'Hours', width: 70},
+                {field: 'limit_days_repr', displayName:'Days', width: 190},
+                {field: 'server_group.group_name', displayName: 'Server Group', width: 100},
                 {field: 'server.server_name', displayName: 'Server', width: 120},
-                {field: 'server_account.server_account_repr', displayName: 'Server Account', width:200},
+                {field: 'server_account.server_account_repr', displayName: 'Server Account', width:140},
                 {field: 'command_group.command_group_name', displayName: 'Command Group', width: 130},
                 {field: 'is_active', displayName: 'Is Active', width: 69,
                  cellTemplate: '/static/templates/remoteuseracls/grid_cell.is_active.templ.html'

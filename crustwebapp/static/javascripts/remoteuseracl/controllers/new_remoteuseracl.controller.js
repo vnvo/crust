@@ -19,13 +19,29 @@
         vm.match_type = 'server';
         vm.is_active = true;
         vm.acl_action = 'allow';
-
+        vm.limit_hours_start = null;
+        vm.limit_hours_end = null;
+        vm.limit_days_data = {
+            5:false, 6:false, 0:false,
+            1:false, 2:false, 3:false, 4:false
+        };
         vm.getRemoteUsersSuggestion = getRemoteUsersSuggestion;
         vm.getServerGroupsSuggestion = getServerGroupsSuggestion;
         vm.getServersSuggestion = getServersSuggestion;
         vm.getServerAccountsSuggestion = getServerAccountsSuggestion;
         vm.getCommandGroupsSuggestion = getCommandGroupsSuggestion;
         vm.submit = submit;
+
+        function getLimitDays(){
+            var limit_days = [];
+            angular.forEach(
+                vm.limit_days_data,
+                function(val, key){
+                    if(val==true)
+                        limit_days.push(key);
+                });
+            return limit_days.join(',');
+        }
 
         function getServerGroupsSuggestion($viewValue){
             return ServerGroups.getSuggestion($viewValue).then(
@@ -93,6 +109,9 @@
 
         function submit(){
             var new_acl_info = {
+                limit_hours_start: vm.limit_hours_start,
+                limit_hours_end: vm.limit_hours_end,
+                limit_days: getLimitDays(),
                 remote_user: vm.remote_user,
                 acl_action: vm.acl_action,
                 is_active: vm.is_active,

@@ -66,14 +66,15 @@ class RemoteUserACLViewSet(viewsets.ModelViewSet):
         if remote_user_data:
             remote_user_obj = RemoteUser.objects.get(id=remote_user_data['id'])
 
-
         command_group_data = data.pop('command_group', None)
         if command_group_data:
-            fkey_objects['command_group'] = CommandGroup.objects.get(id=command_group_data['id'])
+            fkey_objects['command_group'] = CommandGroup.objects.get(
+                id=command_group_data['id'])
 
         server_group_data = data.pop('server_group', None)
         if server_group_data:
-            fkey_objects['server_group'] = ServerGroup.objects.get(id=server_group_data['id'])
+            fkey_objects['server_group'] = ServerGroup.objects.get(
+                id=server_group_data['id'])
 
         server_data = data.pop('server', None)
         if server_data:
@@ -81,8 +82,10 @@ class RemoteUserACLViewSet(viewsets.ModelViewSet):
 
         server_account_data = data.pop('server_account', None)
         if server_account_data:
-            fkey_objects['server_account'] = ServerAccount.objects.get(id=server_account_data['id'])
+            fkey_objects['server_account'] = ServerAccount.objects.get(
+                id=server_account_data['id'])
 
+        #@todo check limit days and hours
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save(remote_user=remote_user_obj,

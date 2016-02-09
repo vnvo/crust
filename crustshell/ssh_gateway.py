@@ -119,9 +119,9 @@ class SSHGateway (paramiko.ServerInterface):
             logger.info('Invalid Password for %s'%username)
             return paramiko.AUTH_FAILED
 
-        if False: #user_obj.allowed_ips:
+        if user_obj.allow_ip:
             allowed_list = [IPNetwork(ip) for ip in\
-                            user_obj.allowed_ips.split(',')]
+                            user_obj.allow_ip.split(',')]
             for iprange in allowed_list:
                 if self.remote_addr in iprange:
                     self.remote_credentials = (username, password)
@@ -129,6 +129,8 @@ class SSHGateway (paramiko.ServerInterface):
 
             logger.info('Username %s not authorized from %s'%(username,
                                                            self.remote_addr))
+            return paramiko.AUTH_FAILED
+
         logger.info('Authentication OK for %s@%s'%(self.user.username, self.remote_addr))
         self.remote_credentials = (username, password)
         return paramiko.AUTH_SUCCESSFUL

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from django.db import models
 from django.db.models import Q
@@ -262,9 +263,9 @@ class RemoteUserACL(models.Model):
         return sa_allow_list_acl
 
     @classmethod
-    def check_direct_access(self, remote_user, proto, server_account_username, server_name):
+    def check_direct_access(self, remote_user, proto, server_account_username, server_name_ip):
         print 'check-direct-access: %s, %s, %s, %s'%(
-            remote_user, proto, server_account_username, server_name
+            remote_user, proto, server_account_username, server_name_ip
         )
 
         server_account = ServerAccount.objects.filter(
@@ -276,7 +277,10 @@ class RemoteUserACL(models.Model):
             print 'server_account not found!'
             return None
 
-        server = Server.objects.filter(server_name=server_name)
+        if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", server_name_ip):
+            server = Server.objects.filter(server_ip = server_name_ip)
+        else:
+            server = Server.objects.filter(server_name=server_name_ip)
         if server:
             server = server[0]
         else:

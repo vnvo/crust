@@ -101,7 +101,7 @@ class SSHGateway (paramiko.ServerInterface):
             self.direct_request = {
                 'proto':conn_info[0][0],
                 'server_account_username':conn_info[0][1],
-                'server_name':conn_info[0][2]}
+                'server_name_ip':conn_info[0][2]}
 
         return username
 
@@ -591,7 +591,7 @@ def run_session(client, client_addr):
         info = sshgw.direct_request
         target_server_account = RemoteUserACL.check_direct_access(
             sshgw.user, info['proto'],
-            info['server_account_username'], info['server_name'])
+            info['server_account_username'], info['server_name_ip'])
         print target_server_account
         if not target_server_account:
             send_message(userchan, 'Invalid Direct Connection Info, Exit.')

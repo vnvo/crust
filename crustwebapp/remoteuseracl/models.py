@@ -102,16 +102,14 @@ class RemoteUserACL(models.Model):
             Only add to allow list if server is allowed, other case is handled
             automatically when allowing/denying a server group directly
             """
-            acl_target = sg
             if acl.acl_action == 'allow':
-                allow_list.add(acl_target)
+                allow_list.add(sg)
 
         def add_server_group(acl, sg):
-            acl_target = sg
             if acl.acl_action == 'allow':
-                allow_list.add(acl_target)
+                allow_list.add(sg)
             else:
-                deny_list.add(acl_target)
+                deny_list.add(sg)
 
         for acl in acl_list:
             if acl.server_account:
@@ -125,7 +123,9 @@ class RemoteUserACL(models.Model):
             else:
                 add_server_group(acl, acl.server_group)
 
-        return list(allow_list - deny_list)
+        data = list(allow_list - deny_list)
+        data.sort(key=lambda x: x.group_name)
+        return data
 
     @classmethod
     def get_filtered_servers_by_group(cls, remote_user, server_group):
@@ -177,7 +177,9 @@ class RemoteUserACL(models.Model):
                     for server in acl.server_group.server_set.all():
                         allow_list.add(server)
 
-        return list(allow_list-deny_list)
+        data = list(allow_list-deny_list)
+        data.sort(key=lambda x: x.server_name)
+        return data
 
     @classmethod
     def get_filtered_server_accounts_by_server(cls, remote_user, server):
@@ -202,9 +204,7 @@ class RemoteUserACL(models.Model):
             if acl.server_account:
                 server_account_maps = ServerAccountMap.objects.filter(
                     server=server
-                ).filter(
-                    server_account=acl.server_account
-                )
+                ).filter(server_account=acl.server_account)
                 if not server_account_maps:
                     continue
 
@@ -219,9 +219,6 @@ class RemoteUserACL(models.Model):
             elif acl.server:
                 if acl.server != server:
                     continue
-                #server_account_maps = ServerAccountMap.objects.filter(server=server)
-                #if not server_account_maps:
-                #    continue
 
                 for sam in acl.server.serveraccountmap_set.all():
                     sa = sam.server_account
@@ -260,6 +257,7 @@ class RemoteUserACL(models.Model):
             sa_allow_list_acl.append(sa)
 
         print sa_allow_list_acl
+        sa_allow_list_acl.sort(key=lambda x:x.username)
         return sa_allow_list_acl
 
     @classmethod

@@ -1,3 +1,4 @@
+import re
 import datetime
 from collections import OrderedDict
 from urwidtrees.decoration import ArrowTree  # for Decoration
@@ -71,20 +72,19 @@ def create_server_group_tree(user_obj):
     Text = FocusableText
     tree = (Text('Crust Shell'), [])
     sg_nodes = []
+    index_map = []
     i = 0
     for sg in user_servergroups:
         i += 1
         index = padding_right(str(i), data_count)
-        sg_nodes.append(
-            (Text('%s%s'%(index, sg), sg), None)
-        )
+        sg_nodes.append( (Text('%s%s'%(index, sg), sg), None) )
+        index_map.append('%s'%sg)
 
     node_group = (Text('Server Groups'), sg_nodes)
-    #tree[1].append(node_group)
     print 'server-group-tree: '
     pprint.pprint( node_group )
     tree[1].append(node_group)
-    return tree
+    return tree, index_map
 
 def create_server_tree(user_obj, server_group):
     print 'create server tree'
@@ -93,19 +93,19 @@ def create_server_tree(user_obj, server_group):
     Text = FocusableText
     tree = (Text('Crust Shell'), [])
     s_nodes = []
+    index_map = []
     i = 0
     for s in user_servers:
         i += 1
         s_nodes.append(
-            (Text('%s%s'%(padding_right(str(i), data_count), s), s), None)
-        )
+            (Text('%s%s'%(padding_right(str(i), data_count), s), s), None) )
+        index_map.append('%s'%s)
 
     node_group = (Text('Servers'), s_nodes)
-    #tree[1].append(node_group)
     print 'server-tree: '
     pprint.pprint( node_group )
     tree[1].append(node_group)
-    return tree
+    return tree, index_map
 
 def create_server_account_tree(user_obj, server):
     print 'create server account tree'
@@ -114,22 +114,19 @@ def create_server_account_tree(user_obj, server):
     Text = FocusableText
     tree = (Text('Crust Shell'), [])
     sa_nodes = []
+    index_map = []
     i = 0
     for sa in user_accounts:
         i += 1
         sa_nodes.append(
-            (Text('%s%s'%(padding_right(str(i), data_count), sa), sa), None)
-        )
+            (Text('%s%s'%(padding_right(str(i), data_count), sa), sa), None) )
+        index_map.append('%s'%sa.username)
 
     node_group = (Text('Server Accounts'), sa_nodes)
-    #tree[1].append(node_group)
     print 'server-account-tree'
     pprint.pprint(node_group)
     tree[1].append(node_group)
-    return tree
-
-
-
+    return tree, index_map
 
 class ShellScreen(Screen):
     def get_available_raw_input(self):
@@ -167,12 +164,10 @@ class ShellBoxMenu(object):
         self.footer_text = [
             ('footer_msg', 'Move:'), ' ',
             ('key', 'Up'), '/', ('key', 'Down'), '   ',
-            #('footer_msg', 'Expand:'), ' ',
-            #('key', 'space'), ',', ('key', 'click'), ' ',
             ('footer_msg', 'Select:'), ' ',
             ('key', 'enter'), '   ', #('key', 'double-click'), ' ',
-            ('footer_msg', 'Quit:'), ' ', ('key', 'q'), '        ',
-            ('footer_msg', 'Powered By: Crust v0.1')
+            ('footer_msg', 'Quit:'), ' ', ('key', 'Ctrl+q'), '        ',
+            ('footer_msg', 'Powered By: Crust-Shell v1.0.7')
         ]
 
         self.quit = False
@@ -180,25 +175,15 @@ class ShellBoxMenu(object):
         self.selected_server = None
         self.selected = None
         self.current_level = 'server-group'
-        #self.root_node = [FocusableText('Crust Shell'), []]
-        #stree = SimpleTree([self.root_node])
-        #atree = ArrowTree(stree)
-        #self.treebox = TreeBox(atree)
-        #stree = SimpleTree([create_server_tree(self.user_obj)])
-        #atree = ArrowTree(stree)
-        #self.treebox = TreeBox(atree)
-        #self.rootwidget = urwid.AttrMap(self.treebox, 'body')
+        self.index_map = []
         #####
-        new_tree = self._create_level_tree() #[0]
-
+        new_tree, self.index_map = self._create_level_tree()
         self.root_node = new_tree
         stree = SimpleTree([self.root_node])
         atree = ArrowTree(stree)
         self.treebox = TreeBox(atree)
         self.rootwidget = urwid.AttrMap(self.treebox, 'body')
         ####
-
-        #self._setup_tree()
         self.ui = None
         self.size = None
         self.header_text = '%s@%s Access List'%(
@@ -213,29 +198,14 @@ class ShellBoxMenu(object):
             self.user_obj, self.remote_host))
 
     def _setup_tree(self):
-        #print self.root_node, self.current_level
         print '================== Setup Tree ========================='
-
-        new_tree = self._create_level_tree()
-
+        new_tree, self.index_map = self._create_level_tree()
         self.root_node = new_tree
         stree = SimpleTree([self.root_node])
         atree = ArrowTree(stree)
-        #print dir(self.treebox)
         self.treebox = TreeBox(atree)
-
-        #####################
-        #self.root_node = None
-        #self.logger.info('setup tree called ........%s'%self.current_level)
-        #if self.root_node[1]:
-        #    print 'pop root_node[1]'
-        #    self.root_node[1].pop()
-
-        #self.root_node[1].append( self._create_level_tree()[0] )
         self.logger.info('after tree setup ... %s'%str(self.root_node))
         self.rootwidget = urwid.AttrMap(self.treebox, 'body')
-        #self.rootwidget.set_attr_map({self.treebox:'body'})
-        #print dir(self.rootwidget)
         self.view.set_body(self.rootwidget)
         self.view.render(size=self.size)
         self.treebox.refresh()
@@ -255,7 +225,6 @@ class ShellBoxMenu(object):
             self.logger.info('level server-account: %s - %s'%(self.user_obj, self.selected_server))
             return create_server_account_tree(self.user_obj, self.selected_server)
 
-
     def main(self):
         try:
             while not self.quit:
@@ -269,7 +238,6 @@ class ShellBoxMenu(object):
                 self.ui.run_wrapper(self.run)
 
             return self.selected
-
         except Exception as e:
             print e
             self.logger.exception('Shell Box Menu, main:')
@@ -291,7 +259,6 @@ class ShellBoxMenu(object):
                 except Exception as e:
                     print 'error ------>  %s'%e
                     self.logger.info(traceback.format_exc())
-                    #self._setup_tree()
                     break #continue
 
                 self.logger.info('%s'%str(current_focus))
@@ -329,8 +296,8 @@ class ShellBoxMenu(object):
 
                 for k in keys:
                     self.view.keypress(self.size, k)
-                    if k in ['q', 'Q']:
-                        self.logger.info('user pressed Q')
+                    if k in ['ctrl q', 'ctrl Q']:
+                        self.logger.info('user pressed Ctrl+Q')
                         self.quit = True
                         self.stop_ui()
                         return
@@ -365,11 +332,17 @@ class ShellBoxMenu(object):
                                 self.selected_server = None
 
                             self._setup_tree()
+                    elif re.match('[a-zA-Z]', k) : #seek and set focus
+                        for index, item in enumerate(self.index_map):
+                            if item.lower().startswith(k.lower()):
+                                print 'setting focus on ', k, index
+                                self.treebox.set_focus((0,0,index))
+                                self.view.render(size=self.size)
+                                break
 
         except Exception as e:
             print e
             self.logger.exception('Shell Menu, run:')
-            #raise
 
     def start_ui(self):
         self.ui.start()

@@ -37,7 +37,7 @@ def unhandled_input(k):
     if k in ['q', 'Q']: raise urwid.ExitMainLoop()
 
 def padding_right(text, pad_len):
-    while len(text) < pad_len:
+    while len(text) < pad_len+2:
         text += ' '
     return text
 
@@ -76,7 +76,7 @@ def create_server_group_tree(user_obj):
     i = 0
     for sg in user_servergroups:
         i += 1
-        index = padding_right(str(i), data_count)
+        index = padding_right(str(i), len(str(data_count)))
         sg_nodes.append( (Text('%s%s'%(index, sg), sg), None) )
         index_map.append('%s'%sg)
 
@@ -98,7 +98,7 @@ def create_server_tree(user_obj, server_group):
     for s in user_servers:
         i += 1
         s_nodes.append(
-            (Text('%s%s'%(padding_right(str(i), data_count), s), s), None) )
+            (Text('%s%s'%(padding_right(str(i), len(str(data_count))), s), s), None) )
         index_map.append('%s'%s)
 
     node_group = (Text('Servers'), s_nodes)
@@ -119,7 +119,7 @@ def create_server_account_tree(user_obj, server):
     for sa in user_accounts:
         i += 1
         sa_nodes.append(
-            (Text('%s%s'%(padding_right(str(i), data_count), sa), sa), None) )
+            (Text('%s%s'%(padding_right(str(i), len(str(data_count))), sa), sa), None) )
         index_map.append('%s'%sa.username)
 
     node_group = (Text('Server Accounts'), sa_nodes)

@@ -21,7 +21,7 @@ from crustsessions.models import CrustCLISession
 from crustsessions.models import CrustSessionEvent
 from crustsessions.models import SESSION_ESTAB, SESSION_RUN
 from crustsessions.models import SESSION_CLOSED_NORMAL, SESSION_CLOSED_LOST
-
+from remote_connections.models import RemoteConnection
 
 
 def generate_session_id():

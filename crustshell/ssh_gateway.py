@@ -21,6 +21,7 @@ from db_utils import get_remote_user_by_username, get_acls_by_remote_user
 from db_utils import start_new_cli_sessions, save_cli_session_event
 from db_utils import close_cli_session
 from db_utils import RemoteUserACL
+from db_utils import RemoteConnection
 from lib.ipaddr import IPNetwork, IPAddress
 from lib.terminal import Terminal
 from lib.terminal import css_renditions
@@ -68,7 +69,8 @@ class TerminalThrobber(threading.Thread):
 
 class SSHGateway (paramiko.ServerInterface):
 
-    def __init__(self, remote_addr):
+    def __init__(self, remote_addr, remote_connection=None):
+        self.remote_connection = remote_connection
         self.event = threading.Event()
         self.remote_credentials = None
         self.remote_addr = IPAddress(remote_addr)
@@ -83,6 +85,9 @@ class SSHGateway (paramiko.ServerInterface):
             logger.debug('Handled a channel request, allowed a session')
             return paramiko.OPEN_SUCCEEDED
         logger.debug('Handled a channel request, denied: ' + kind)
+        self.remote_connection.successful = False
+        self.remote_connection.fail_reason = 'Channel Kind %s not Allowed'%kind
+        self.remote_connection.save()
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_direct_connection(self, username):
@@ -102,21 +107,35 @@ class SSHGateway (paramiko.ServerInterface):
                 'proto':conn_info[0][0],
                 'server_account_username':conn_info[0][1],
                 'server_name_ip':conn_info[0][2]}
+            self.remote_connection.mode = 'direct'
 
+        self.remote_connection.username = username
+        self.remote_connection.save()
         return username
 
     def check_auth_password(self, username, password):
+        self.remote_connection.state = 'auth'
         logger.debug('Checking password for user %s' % (username))
         username = self.check_direct_connection(username)
-        user_obj = get_remote_user_by_username(username)
+        try:
+            user_obj = get_remote_user_by_username(username)
+        except Exception as e:
+            self.remote_connection.fail_reason = 'Remote User not found'
+            self.remote_connection.save()
 
         if not user_obj:
             logger.info('Username "%s" not found'%username)
+            self.remote_connection.successful = False
+            self.remote_connection.fail_reason = 'User Not Found'
+            self.remote_connection.save()
             return paramiko.AUTH_FAILED
 
         self.user = user_obj
         if not user_obj.password == password:
             logger.info('Invalid Password for %s'%username)
+            self.remote_connection.successful = False
+            self.remote_connection.fail_reason = 'Invalid Password'
+            self.remote_connection.save()
             return paramiko.AUTH_FAILED
 
         if user_obj.allow_ip:
@@ -129,6 +148,9 @@ class SSHGateway (paramiko.ServerInterface):
 
             logger.info('Username %s not authorized from %s'%(username,
                                                            self.remote_addr))
+            self.remote_connection.successful = False
+            self.remote_connection.fail_reason = 'Reject Source IP'
+            self.remote_connection.save()
             return paramiko.AUTH_FAILED
 
         logger.info('Authentication OK for %s@%s'%(self.user.username, self.remote_addr))
@@ -563,13 +585,19 @@ def run_session(client, client_addr):
     user = paramiko.Transport(client)
     add_host_keys(user)
     remote_host = client_addr[0]
-    sshgw = SSHGateway(remote_host)
+    remote_connection = RemoteConnection(source_ip=remote_host, username='-', source_port=client_addr[1])
+    remote_connection.save()
+    sshgw = SSHGateway(remote_host, remote_connection)
 
     # We initialized a transport and now start SSH negotiation
     try:
         user.start_server(server=sshgw)
     except (paramiko.SSHException, EOFError) as e:
         logger.info('SSH negotiation failed: ' + str(e))
+        remote_connection.successful = False
+        remote_connection.fail_reason = str(e)
+        remote_connection.terminated_at = datetime.datetime.now()
+        remote_connection.save()
         sys.exit(1)
 
     # Waiting for client to authenticate and initiate a session
@@ -577,6 +605,8 @@ def run_session(client, client_addr):
     userchan = user.accept(60)
     if userchan is None:
         logger.warn('Client failed to open a channel')
+        remote_connection.terminated_at = datetime.datetime.now()
+        remote_connection.save()
         sys.exit(1)
 
     # Waiting for client to request something
@@ -584,8 +614,14 @@ def run_session(client, client_addr):
     sshgw.event.wait(60)
     if not sshgw.event.isSet():
         logger.warn('Client never asked for a shell or sftp.')
+        remote_connection.successful = False
+        remote_connection.fail_reason = 'Never asked for Shell or Copy'
+        remote_connection.terminated_at = datetime.datetime.now()
+        remote_connection.save()
         sys.exit(1)
 
+    remote_connection.state = 'select server'
+    remote_connection.save()
     if sshgw.direct_request:
         print sshgw.direct_request
         info = sshgw.direct_request
@@ -595,9 +631,13 @@ def run_session(client, client_addr):
         print target_server_account
         if not target_server_account:
             send_message(userchan, 'Invalid Direct Connection Info, Exit.')
+            remote_connection.successful = False
+            remote_connection.fail_reason = 'Invalid Direct:%s#%s#%s'%(
+                info['proto'], info['server_account_username'], info['server_name_ip'])
+            remote_connection.terminated_at = datetime.datetime.now()
+            remote_connection.save()
             cleanup(userchan, None)
             return 1
-
     else:
         try:
             sshgw.ignore_resize = True
@@ -613,9 +653,14 @@ def run_session(client, client_addr):
     logger.info('Selected: %s'%target_server_account)
     if not target_server_account:
         send_message(userchan, 'No Target Selected, Exit')
+        remote_connection.successful = True
+        remote_connection.terminated_at = datetime.datetime.now()
+        remote_connection.save()
         cleanup(userchan, None)
         return 1
 
+    remote_connection.state = 'running'
+    remote_connection.save()
     spinner = TerminalThrobber(
         userchan,
         '%s@%s'%(target_server_account,
@@ -625,15 +670,22 @@ def run_session(client, client_addr):
 
     #ssh or telnet
     if target_server_account.protocol == 'ssh':
-        return handle_ssh_connection(
+        ret = handle_ssh_connection(
             target_server_account, sshgw, remote_host, userchan, spinner)
+        remote_connection.terminated_at = datetime.datetime.now()
+        remote_connection.save()
+        return ret
     #elif target_server_account.protocol == 'ssh and telnet':
     #    pass
     else: #telnet
         print '============== handle telnet connection ==============='
-        return handle_telnet_connection(
+        ret = handle_telnet_connection(
             target_server_account, sshgw, remote_host, userchan, spinner
         )
+        remote_connection.terminated_at = datetime.datetime.now()
+        remote_connection.save()
+        return ret
+
 
 def handle_telnet_connection(server_account, sshgw, remote_host, userchan, spinner):
     target_server = server_account.server

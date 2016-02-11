@@ -25,8 +25,8 @@
             //Server Account Map API
             getAccountServers: getServersForAccount,
             delAccountServers: delServersForAccount,
-            addAccountServers: addServersForAccount
-
+            addAccountServers: addServersForAccount,
+            //getAccountsForServer: getAccountsForServer
         };
         return ServerAccounts;
 
@@ -87,6 +87,9 @@
         }
 
         //////////////
+        /*
+         * Returns directly mapped servers for the given account id
+         */
         function getServersForAccount(server_account_id){
             return $http.get('/api/v1/serveraccountmaps/',
                              {params: {server_account_id:server_account_id}});
@@ -101,6 +104,15 @@
                 '/api/v1/serveraccountmaps/',
                 {server_account:server_account, server:server}
             );
+        }
+
+        /*
+         Return all available accounts for a server either with direct map or
+         from server group account map
+         */
+        function getAllAccountsForServer(server_id){
+            return $http.get('/api/v1/allserveraccounts/',
+                             {params: {server_id:server_id}});
         }
 
 

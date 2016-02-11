@@ -1,0 +1,77 @@
+<br/>
+<form role="form" ng-submit="vm.submit()" class="form-horizontal">
+
+    <div class="form-group">
+        <label for="remoteuser__username" class="control-label col-xs-4">Username</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="remoteuser__username"
+                   data-ng-model="vm.username" placeholder="Userame" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remoteuser__password" class="control-label col-xs-4">Password</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="remoteuser__password"
+                   data-ng-model="vm.password" type="password" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remoteuser__confirm_password" class="control-label col-xs-4">Confirm Password</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="remoteuser__confirm_password"
+                   data-ng-model="vm.confirm_password" type="password" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remoteuser__email" class="control-label col-xs-4">Email</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="remoteuser__email"
+                   data-ng-model="vm.email" placeholder="nickname@domain.com" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remoteuser__cell_phone" class="control-label col-xs-4">Cell Phone</label>
+        <div class="col-xs-7">
+            <input class="form-control" id="remoteuser__cell_phone"
+                   data-ng-model="vm.cell_phone" placeholder="+989xxx..." />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remoteuser__is_locked" class="control-label col-xs-4">Is Locked</label>
+        <div class="col-xs-7">
+            <label class="radio-inline btn btn-info" title="Remote User Is Un-Locked">
+                <input type="radio" data-ng-model="vm.is_locked" ng-value="false">
+                <i class="fa fa-unlock fa-lg"></i>
+            </label>
+            <label class="radio-inline btn btn-warning" title="Remote User Is Locked">
+                <input type="radio" data-ng-model="vm.is_locked" ng-value="true">
+                <i class="fa fa-lock fa-lg"></i>
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remoteuser__sshv2_public_key" class="control-label col-xs-4">SSHv2 Public Key</label>
+        <div class="col-xs-7">
+            <textarea class="form-control" id="remoteuser__sshv2_public_key"
+                      data-ng-model="vm.sshv2_public_key"/>
+            </textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remoteuser__comment" class="control-label col-xs-4">Comment</label>
+        <div class="col-xs-7">
+            <textarea class="form-control" data-ng-model="vm.comment"
+                      id="remoteuser__comment">
+            </textarea>
+        </div>
+    </div>
+
+    <br/><br/>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-10">
+            <button type="submit" class="btn btn-success">
+                Add Remote User
+            </button>
+        </div>
+    </div>
+</form>

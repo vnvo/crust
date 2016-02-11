@@ -48,7 +48,8 @@ INSTALLED_APPS = (
     'remoteuseracl',
     'supervisoracl',
     'crustsessions',
-    'accesspins'
+    'accesspins',
+    'remote_connections'
     #'bulkcommand'
 )
 

@@ -32,6 +32,8 @@ from crustsessions.views import CrustSessionEventViewSet
 from crustsessions.views import CrustKillSessionView
 from crustsessions.views import CrustActiveSessionCountView
 
+from remote_connections.views import RemoteConnectionViewSet
+
 from accesspins.views import AccessPinViewSet
 
 from crustwebapp.views import IndexView
@@ -52,6 +54,7 @@ router.register(r'supervisoracls', SupervisorACLViewSet)
 router.register(r'crustsessions', CrustCLISessionViewSet, base_name='crustsessions')
 session_router = routers.NestedSimpleRouter(router, r'crustsessions', lookup='crustsession')
 session_router.register(r'log', CrustSessionEventViewSet)
+router.register(r'remote_connections', RemoteConnectionViewSet, base_name='remoteconnections')
 router.register(r'accesspins', AccessPinViewSet, base_name='accesspins')
 
 

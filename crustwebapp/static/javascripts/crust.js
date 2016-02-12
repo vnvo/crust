@@ -18,7 +18,8 @@
             'crust.commandpatterns',
             'crust.remoteuseracls',
             'crust.supervisoracls',
-            'crust.crustsessions'
+            'crust.crustsessions',
+            'crust.remote_connections'
         ]);
 
     angular

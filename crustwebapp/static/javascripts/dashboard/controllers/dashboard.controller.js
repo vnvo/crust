@@ -12,7 +12,7 @@
     DashboardController.$inject = [
         '$scope', '$interval', 'Snackbar',
         'ServerGroups', 'Servers', 'CrustSessions',
-        'ServerAccounts', 'RemoteUsers'
+        'ServerAccounts', 'RemoteUsers', 'RemoteConnections'
     ];
 
     /**
@@ -20,7 +20,7 @@
      */
     function DashboardController($scope, $interval, Snackbar,
                                  ServerGroups, Servers, CrustSessions,
-                                 ServerAccounts, RemoteUsers){
+                                 ServerAccounts, RemoteUsers, RemoteConnections){
         var vm = this;
 
         $scope.sg_server_counts = [];
@@ -48,11 +48,8 @@
                 colorByPoint: true,
                 'name':'Server Count',
                 'data':$scope.sg_server_counts
-
-                //[ ['ali',4],['gholi',17] ]
             }]
         };
-
 
         vm.servergroup_count = 'n/a';
         vm.server_count = 'n/a';
@@ -98,9 +95,21 @@
 
         function getFastSystemStats(){
             //Snackbar.show('Fetching System Status ... ');
+            getActiveConnections();
             getActiveSessions();
         }
 
+
+        function getActiveConnections(){
+            RemoteConnections.allActive().then(
+                function(data, status, headers, config){
+                    vm.active_connections = data.data.results;
+                },
+                function(data, status, headers, config){
+                    console.log(data);
+                }
+            );
+        }
 
         function getActiveSessions(){
             // Active Sessions

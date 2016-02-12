@@ -8,6 +8,6 @@ class RemoteConnectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = RemoteConnection
         fields = ('id', 'created_at', 'terminated_at', 'username',
-                  'source_ip', 'successful', 'fail_reason')
+                  'source_ip', 'successful', 'fail_reason', 'state')
 
         read_only_fields = fields

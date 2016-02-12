@@ -54,7 +54,7 @@ router.register(r'supervisoracls', SupervisorACLViewSet)
 router.register(r'crustsessions', CrustCLISessionViewSet, base_name='crustsessions')
 session_router = routers.NestedSimpleRouter(router, r'crustsessions', lookup='crustsession')
 session_router.register(r'log', CrustSessionEventViewSet)
-router.register(r'remote_connections', RemoteConnectionViewSet, base_name='remoteconnections')
+router.register(r'remoteconnections', RemoteConnectionViewSet, base_name='remoteconnections')
 router.register(r'accesspins', AccessPinViewSet, base_name='accesspins')
 
 

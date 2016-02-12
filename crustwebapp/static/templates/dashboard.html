@@ -127,7 +127,7 @@
 <!-- /.row -->
 <br/>
 <div class="row">
-    <div class="col-xs-7">
+    <div class="col-xs-12 col-md-7">
         <div class="panel panel-default">
             <div class="panel-heading text-center">
                 <h4>Active Sessions</h4>
@@ -166,9 +166,44 @@
                     </tbody>
                 </table>
             </div>
-</div>
+        </div>
     </div>
-    <div class="col-xs-5">
+
+    <div class="col-xs-12 col-md-5">
+        <div class="panel panel-default">
+            <div class="panel-heading text-center">
+                <h4>Active Connections</h4>
+            </div>
+            <div class="panel-body" ng-show="!vm.active_connections.length">
+                No Active Connections
+            </div>
+            <div class="panel-body" ng-show="vm.active_connections.length">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Start</th>
+                            <th>IP</th>
+                            <th>Remote User</th>
+                            <th>State</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="connection in vm.active_connections">
+                            <td>{{connection.created_at}}</td>
+                            <td>{{connection.source_ip}}</td>
+                            <td>{{connection.username}}</td>
+                            <td>{{connection.state}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<div class="row">
+    <div class="col-xs-12 col-md-5">
         <highchart id="server-groups-server-count" config="serverCountChartConfig" ></highchart>
     </div>
 </div>

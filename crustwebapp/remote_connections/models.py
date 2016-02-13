@@ -16,3 +16,10 @@ class RemoteConnection(models.Model):
             self.username, self.source_ip, self.state,
             self.created_at, self.terminated_at
         )
+
+class BanIP(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    ip = models.CharField(max_length=32)
+
+    def __unicode__(self):
+        return self.ip

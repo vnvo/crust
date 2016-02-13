@@ -6,7 +6,7 @@ import os
 import sys
 import uuid
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 sys.path.append(os.getcwd()+'/../crustwebapp/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                       "crustwebapp.settings")
@@ -21,7 +21,7 @@ from crustsessions.models import CrustCLISession
 from crustsessions.models import CrustSessionEvent
 from crustsessions.models import SESSION_ESTAB, SESSION_RUN
 from crustsessions.models import SESSION_CLOSED_NORMAL, SESSION_CLOSED_LOST
-from remote_connections.models import RemoteConnection
+from remote_connections.models import RemoteConnection, BanIP
 
 
 def generate_session_id():
@@ -100,6 +100,7 @@ def close_failed_connection(connection, reason):
     connection.fail_reason = reason
     connection.terminated_at = datetime.now()
     connection.save()
+    check_connection_ban_ip(connection)
 
 def close_connection(connection):
     connection.successful = True
@@ -109,3 +110,22 @@ def close_connection(connection):
 def update_connection_state(connection, state):
     connection.state = state
     connection.save()
+
+def check_connection_ban_ip(connection):
+    should_ban = False
+    now = datetime.now()
+    past_min = now - timedelta(seconds=60)
+    past_5min = now - timedelta(seconds=300)
+    connection_qs = RemoteConnection.objects.filter(
+        source_ip=connection.source_ip
+    ).filter(
+        username=connection.username
+    ).filter(
+        fail_reason__in=['Invalid Password', 'Remote User not found'])
+
+    past_min_fails = connection_qs.filter(created_at__gte=past_min).count()
+    past_5min_fails = connection_qs.filter(created_at__gte=past_5min).count()
+
+    if past_min_fails >= 3 or past_5min_fails >= 3: # mark for ban
+        ban_ip = BanIP(ip=connection.source_ip)
+        ban_ip.save()

@@ -164,6 +164,7 @@
                 },
                 {field: 'id', displayName: 'ID', width: 35},
                 {field: 'username', displayName: 'Username', width: 100},
+                {field: 'auth_mode', displayName: 'Auth Mode', width: 85},
                 {field: 'email', displayName: 'Email', width: 160},
                 {field: 'cell_phone', displayName: 'Cell Phone', width: 120},
                 {field: 'is_locked', displayName: 'Is Locked', width: 80,

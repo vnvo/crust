@@ -8,6 +8,18 @@
                    data-ng-model="vm.username" placeholder="Userame" />
         </div>
     </div>
+
+    <div class="form-group">
+        <label for="remoteuser__auth_mode" class="control-label col-xs-4">
+            Auth Mode</label>
+        <div class="col-xs-7">
+            <select ng-model="vm.auth_mode"
+                    ng-options="item for item in vm.auth_modes">
+                <option value="">-Select Mode-</option>
+            </select>
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="remoteuser__password" class="control-label col-xs-4">Password</label>
         <div class="col-xs-7">

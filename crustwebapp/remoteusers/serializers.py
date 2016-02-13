@@ -10,6 +10,8 @@ class RemoteUserSerializer(serializers.ModelSerializer):
         model = RemoteUser
         fields = ('id', 'username', 'is_locked', 'email',
                   'cell_phone', 'password', 'confirm_password',
-                  'sshv2_public_key', 'comment', 'allow_ip')
+                  'sshv2_public_key', 'comment', 'allow_ip',
+                  'auth_mode'
+        )
 
         read_only_fields = ('id',)

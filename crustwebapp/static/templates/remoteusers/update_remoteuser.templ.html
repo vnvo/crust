@@ -23,6 +23,8 @@
         <div class="col-xs-7">
             <input class="form-control" id="remoteuser__password"
                    data-ng-model="vm.password" type="password" />
+            <password-strength ng-model="vm.password" ng-show="vm.password.length">
+            </password-strength>
         </div>
     </div>
     <div class="form-group">

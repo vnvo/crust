@@ -11,7 +11,9 @@
         var RemoteConnections = {
             all: getAllRC,
             allActive: getAllActive,
-            failStats: getFailedRCStats
+            failStats: getFailedRCStats,
+            failCount: getFailCount,
+            userFailCount: getUserFailCount
         };
 
         return RemoteConnections;
@@ -39,5 +41,14 @@
                 }
             );
         }
+
+        function getFailCount(){
+            return $http.get('/api/v1/remoteconnections/failcount/');
+        }
+
+        function getUserFailCount(){
+            return $http.get('/api/v1/remoteconnections/usersfailcount/');
+        }
+
     }
 })();

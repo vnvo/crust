@@ -43,11 +43,38 @@
                     }
                 }
             },
-            title:{text:'Server Groups, Server Count'},
+            title:{text:'Server Count Per Group'},
             series:[{
                 colorByPoint: true,
                 'name':'Server Count',
                 'data':$scope.sg_server_counts
+            }]
+        };
+        $scope.rc_fail_count = [];
+        $scope.rcFailCountChartConfig = {
+            options:{
+                chart:{
+                    type:'pie'
+                },
+                tooltip: {
+                    style: {padding:10, fontWeight:'bold'}
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        }
+                    }
+                }
+            },
+            title:{text:'Remote Connections Fail(Past 24 Hours)'},
+            series:[{
+                colorByPoint: true,
+                'name':'Count',
+                'data':$scope.rc_fail_counts
             }]
         };
 
@@ -67,6 +94,7 @@
         getNormalSystemStats();
         getFastSystemStats();
         createServerGroupChart();
+        createFailConnectionsChart();
         vm.killSession = killSession;
 
         var timer = $interval(getNormalSystemStats, 120000);
@@ -97,11 +125,12 @@
             //Snackbar.show('Fetching System Status ... ');
             getActiveConnections();
             getActiveSessions();
+            getConnectionFailPerUser();
         }
 
 
         function getActiveConnections(){
-            RemoteConnections.allActive().then(
+            RemoteConnections.allActive(10,1).then(
                 function(data, status, headers, config){
                     vm.active_connections = data.data.results;
                 },
@@ -113,7 +142,7 @@
 
         function getActiveSessions(){
             // Active Sessions
-            CrustSessions.allActive().then(
+            CrustSessions.allActive(10,1).then(
                 getActiveCountSucccess, getActiveCountError
             );
             function getActiveCountSucccess(data, status, headers, config){
@@ -123,6 +152,17 @@
             function getActiveCountError(data, status, headers, config){
                 Snackbar.error('Can not get Active Sessions Count.');
             }
+        }
+
+        function getConnectionFailPerUser(){
+            RemoteConnections.userFailCount().then(
+                function(data, status, headers, config){
+                    vm.users_fail_connections = data.data.users_fail_counts;
+                },
+                function(data, status, headers, config){
+                    console.log(data);
+                }
+            );
         }
 
         /**
@@ -191,6 +231,23 @@
             };
 
         }
+
+        function createFailConnectionsChart(){
+            RemoteConnections.failCount().then(
+                getRCFailCountSuccess, getRCFailCountError
+            );
+            function getRCFailCountSuccess(data, status, headers, config){
+                console.log(data.data.fail_counts);
+                $scope.rcFailCountChartConfig.series[0].data = data.data.fail_counts;
+                $scope.$broadcast('highchartsng.reflow');
+            }
+
+            function getRCFailCountError(data, status, headers, config){
+                console.log(data);
+            };
+
+        }
+
 
         function killSession(id){
             if(!confirm('You are killing an Active Session, Are you sure?'))

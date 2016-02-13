@@ -33,6 +33,8 @@ from crustsessions.views import CrustKillSessionView
 from crustsessions.views import CrustActiveSessionCountView
 
 from remote_connections.views import RemoteConnectionViewSet
+from remote_connections.views import RemoteConnectionsFailCountView
+from remote_connections.views import RemoteConnectionsFailPerUser
 
 from accesspins.views import AccessPinViewSet
 
@@ -70,6 +72,14 @@ urlpatterns = patterns(
         name='crustsession-kill'),
 
     ### Dashboard General Stats
+    url(r'^api/v1/remoteconnections/failcount/$',
+        RemoteConnectionsFailCountView.as_view(),
+        name='connections-fail-count'),
+
+    url(r'^api/v1/remoteconnections/usersfailcount/$',
+        RemoteConnectionsFailPerUser.as_view(),
+        name='connections-peruser-fail-count'),
+
     url(r'^api/v1/crustsessions/active/count/$',
         CrustActiveSessionCountView.as_view(),
         name='sessions-active-count'),

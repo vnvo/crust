@@ -92,3 +92,20 @@ def get_server_accounts_by_server(user_obj, server_obj):
     return RemoteUserACL.get_filtered_server_accounts_by_server(
         user_obj,
         server_obj)
+
+################### Remote Connections ##########
+
+def close_failed_connection(connection, reason):
+    connection.successful = False
+    connection.fail_reason = reason
+    connection.terminated_at = datetime.now()
+    connection.save()
+
+def close_connection(connection):
+    connection.successful = True
+    connection.terminated_at = datetime.now()
+    connection.save()
+
+def update_connection_state(connection, state):
+    connection.state = state
+    connection.save()

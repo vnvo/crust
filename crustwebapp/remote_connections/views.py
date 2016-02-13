@@ -35,7 +35,7 @@ class RemoteConnectionsFailPerUser(views.APIView):
         return (permissions.IsAuthenticated(), )
     def get(self, request):
         now = datetime.now()
-        past24 = now - timedelta(seconds=72*3600)
+        past24 = now - timedelta(seconds=24*3600)
         qs = RemoteConnection.objects.filter(
             created_at__gte=past24
         ).filter(

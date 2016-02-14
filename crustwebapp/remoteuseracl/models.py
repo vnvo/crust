@@ -29,7 +29,7 @@ class RemoteUserACL(models.Model):
     is_active = models.BooleanField(default=True)
     limit_hours_start = models.IntegerField(null=True, blank=True, default=-1)
     limit_hours_end = models.IntegerField(null=True, blank=True, default=-1)
-    limit_days = models.CharField(blank=True, null=True, max_length=32)
+    limit_days = models.CharField(blank=True, null=True, max_length=32, default='')
 
     def __unicode__(self):
         return 'RU-ACL(%s): %s'%(

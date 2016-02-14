@@ -28,6 +28,8 @@
         getRuACLInfo();
 
         function prepLimitDays(){
+            if(vm.limit_days==null)
+                vm.limit_days = '';
             angular.forEach(
                 vm.limit_days.split(','),
                 function(val, index){
@@ -54,8 +56,8 @@
                 var info = data.data;
                 vm.remoteuseracl_id = info.id;
                 vm.remote_user = info.remote_user;
-                vm.limit_hours_start = info.limit_hours_start;
-                vm.limit_hours_end = info.limit_hours_end;
+                vm.limit_hours_start = (info.limit_hours_start==null?-1:info.limit_hours_start);
+                vm.limit_hours_end = (info.limit_hours_end==null?-1:info.limit_hours_end);
                 vm.limit_days = info.limit_days;
                 prepLimitDays();
 

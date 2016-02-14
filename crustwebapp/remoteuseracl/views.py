@@ -62,6 +62,12 @@ class RemoteUserACLViewSet(viewsets.ModelViewSet):
             'server_group':None, 'command_group':None,
             'server':None, 'server_account':None}
 
+        #@todo: fix this ugly pice of shit
+        if data['limit_hours_start'] == None:
+            data['limit_hours_start'] = -1
+        if data['limit_hours_end'] == None:
+            data['limit_hours_end'] = -1
+
         remote_user_data = data.pop('remote_user', None)
         if remote_user_data:
             remote_user_obj = RemoteUser.objects.get(id=remote_user_data['id'])
@@ -101,6 +107,12 @@ class RemoteUserACLViewSet(viewsets.ModelViewSet):
         fkey_objects = {
             'server_group':None, 'command_group':None,
             'server':None, 'server_account':None}
+
+        #@todo: fix this ugly pice of shit
+        if data['limit_hours_start'] == None:
+            data['limit_hours_start'] = -1
+        if data['limit_hours_end'] == None:
+            data['limit_hours_end'] = -1
 
         remote_user_data = data.pop('remote_user', None)
         if remote_user_data:

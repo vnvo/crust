@@ -1,4 +1,5 @@
 import os
+import redis
 from datetime import datetime
 from rest_framework import permissions, viewsets
 from rest_framework import views, status
@@ -101,7 +102,9 @@ class CrustKillSessionView(views.APIView):
         session_obj = CrustCLISession.objects.get(id=session_id)
         if session_obj:
             pid_to_kill = session_obj.pid
-            os.system('sudo kill -9 %s'%pid_to_kill)
+            #os.system('sudo kill -9 %s'%pid_to_kill)
+            redis_conn = redis.Redis()
+            redis_conn.publish(str(pid_to_kill), 'KILL:%s'%request.user.username)
             session_obj.termination_cause = 'Kill By %s'%request.user
             session_obj.terminated_at = datetime.now()
             session_obj.status = 'CLOSED-KILLED'

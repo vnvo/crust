@@ -22,7 +22,7 @@ from crustsessions.models import CrustSessionEvent
 from crustsessions.models import SESSION_ESTAB, SESSION_RUN
 from crustsessions.models import SESSION_CLOSED_NORMAL, SESSION_CLOSED_LOST
 from remote_connections.models import RemoteConnection, BanIP
-
+from auth_lib.auth_helpers import ldap_authenticate_user
 
 def generate_session_id():
     new_session_id = uuid.uuid4()

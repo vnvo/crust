@@ -19,11 +19,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='remoteuseracl',
             name='limit_hours_end',
-            field=models.IntegerField(null=True, blank=True),
+            field=models.IntegerField(default=-1, null=True, blank=True),
         ),
         migrations.AddField(
             model_name='remoteuseracl',
             name='limit_hours_start',
-            field=models.IntegerField(null=True, blank=True),
+            field=models.IntegerField(default=-1, null=True, blank=True),
         ),
     ]

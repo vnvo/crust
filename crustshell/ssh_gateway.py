@@ -23,6 +23,7 @@ from db_utils import close_cli_session
 from db_utils import RemoteUserACL
 from db_utils import RemoteConnection
 from db_utils import close_connection, close_failed_connection, update_connection_state
+from db_utils import ldap_authenticate_user
 from lib.ipaddr import IPNetwork, IPAddress
 from lib.terminal import Terminal
 from lib.terminal import css_renditions
@@ -128,7 +129,17 @@ class SSHGateway (paramiko.ServerInterface):
 
         self.user = user_obj
         if self.user.auth_mode == 'ldap':
-            pass
+            if self.user.ldap_cn:
+                result = ldap_authenticate_user(
+                    self.user.username, self.user.ldap_cn, password)
+                if not result:
+                    close_failed_connection(self.remote_connection,
+                                            'Invalid Password(LDAP)')
+                    return paramiko.AUTH_FAILED
+            else:
+                close_failed_connection(self.remote_connection,
+                                        'LDAP CN Not Set')
+                return paramiko.AUTH_FAILED
 
         elif not user_obj.password == password: #local mode
             logger.info('Invalid Password for %s'%username)

@@ -15,6 +15,8 @@ import pwd
 import time
 import datetime
 import re
+import redis
+import simplejson as json
 from optparse import OptionParser
 from shell_box_menu import ShellBoxMenu
 from db_utils import get_remote_user_by_username, get_acls_by_remote_user
@@ -52,7 +54,6 @@ class TerminalThrobber(threading.Thread):
         # We only do throbbing for interactive sessions
         if self.channel.requested_action != 'interactive':
             return
-
         self.channel.send('\r\n====================================================================\r\n')
         self.channel.send("\r\nConnecting to %s ...  "%self.connection)
         throbber = ['|', '/', '-', '\\']
@@ -67,6 +68,48 @@ class TerminalThrobber(threading.Thread):
         self.message = message
         self.throb = False
         self.join()
+
+class ChannelMan(threading.Thread):
+    def __init__(self, channel, pid, remote_connection):
+        threading.Thread.__init__(self)
+        self.channel = channel
+        self.remote_connection = remote_connection
+        self.pid_str = str(pid)
+        self.redis_conn = None
+        self.pubsub = None
+        self._setup()
+
+    def _setup(self):
+        """
+        Register to messaging backend
+        """
+        self.redis_conn = redis.Redis()
+        self.pubsub = self.redis_conn.pubsub()
+        self.pubsub.subscribe(self.pid_str)
+
+    def run(self):
+        for msg in self.pubsub.listen():
+            print msg
+            if msg['type'] != 'message':
+                continue
+
+            if msg['data'].startswith('KILL'):
+                command, admin = msg['data'].split(':')
+                close_connection(self.remote_connection, 'Killed by %s'%admin)
+                self.channel.send('\r\nSession Killed by %s\r\n'%admin)
+                time.sleep(1)
+                os.system('sudo kill -9 %s'%self.pid_str)
+
+            elif msg['data'].startswith('MSG'):
+                data = re.findall('MSG:(.*)', msg['data'])
+                msg_info = json.loads(data[0])
+                self.channel.send(
+                    '\r\n\r\n%s: %s\r\n'%(msg_info['sender'], msg_info['message']))
+
+    def stop(self):
+        self.pubsub.unsubscribe()
+        self.join()
+
 
 class SSHGateway (paramiko.ServerInterface):
 
@@ -591,7 +634,9 @@ def run_session(client, client_addr):
     user = paramiko.Transport(client)
     add_host_keys(user)
     remote_host = client_addr[0]
-    remote_connection = RemoteConnection(source_ip=remote_host, username='-', source_port=client_addr[1])
+    remote_connection = RemoteConnection(
+        source_ip=remote_host, username='-',
+        source_port=client_addr[1], pid=os.getpid())
     remote_connection.save()
     sshgw = SSHGateway(remote_host, remote_connection)
 
@@ -620,6 +665,8 @@ def run_session(client, client_addr):
         close_failed_connection(remote_connection, 'Did not ask for shell or copy')
         sys.exit(1)
 
+    channel_man = ChannelMan(userchan, os.getpid(), remote_connection)
+    channel_man.start()
     update_connection_state(remote_connection, 'select server')
     if sshgw.direct_request:
         info = sshgw.direct_request
@@ -643,6 +690,8 @@ def run_session(client, client_addr):
                 userchan, sshgw.user, remote_host, logger
             ).main()
         except Exception as e:
+            close_failed_connection(remote_connection, str(e))
+            channel_man.stop()
             print e
             raise
 
@@ -652,6 +701,7 @@ def run_session(client, client_addr):
     if not target_server_account:
         send_message(userchan, 'No Target Selected, Exit')
         close_connection(remote_connection)
+        channel_man.stop()
         cleanup(userchan, None)
         return 1
 
@@ -667,6 +717,7 @@ def run_session(client, client_addr):
         ret = handle_ssh_connection(
             target_server_account, sshgw, remote_host, userchan, spinner)
         close_connection(remote_connection)
+        channel_man.stop()
         return ret
     #elif target_server_account.protocol == 'ssh and telnet':
     #    pass
@@ -675,6 +726,7 @@ def run_session(client, client_addr):
         ret = handle_telnet_connection(
             target_server_account, sshgw, remote_host, userchan, spinner)
         close_connection(remote_connection)
+        channel_man.stop()
         return ret
 
 

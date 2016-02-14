@@ -95,16 +95,18 @@ def get_server_accounts_by_server(user_obj, server_obj):
 
 ################### Remote Connections ##########
 
-def close_failed_connection(connection, reason):
+def close_failed_connection(connection, reason, termination_cause='failure'):
     connection.successful = False
     connection.fail_reason = reason
     connection.terminated_at = datetime.now()
+    connection.termination_cause = termination_cause
     connection.save()
     check_connection_ban_ip(connection)
 
-def close_connection(connection):
+def close_connection(connection, termination_cause='normal stop'):
     connection.successful = True
     connection.terminated_at = datetime.now()
+    connection.termination_cause = termination_cause
     connection.save()
 
 def update_connection_state(connection, state):

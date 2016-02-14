@@ -3,6 +3,7 @@ from django.db import models
 class RemoteConnection(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     terminated_at = models.DateTimeField(null=True, blank=True)
+    termination_cause = models.CharField(max_length=512, blank=True, null=True)
     mode = models.CharField(max_length=32, default='normal')
     state = models.CharField(max_length=32, default='new')
     username = models.CharField(max_length=256)
@@ -10,10 +11,11 @@ class RemoteConnection(models.Model):
     source_port = models.IntegerField(default=0)
     successful = models.BooleanField(default=True)
     fail_reason = models.CharField(max_length=512, blank=True, null=True)
+    pid = models.IntegerField(blank=True, null=True)
 
     def __unicode__(self):
-        return '%s(%s)- %s - %s/%s'%(
-            self.username, self.source_ip, self.state,
+        return '%s:%s(%s)- %s - %s/%s'%(
+            self.pid, self.username, self.source_ip, self.state,
             self.created_at, self.terminated_at
         )
 

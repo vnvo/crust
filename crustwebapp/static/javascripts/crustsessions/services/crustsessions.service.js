@@ -14,6 +14,7 @@
             get: getSession,
             activeCount: getActiveCount,
             kill: killSession,
+            sendMsg: sendMsg,
             logs: getSessionLogs
         };
 
@@ -64,6 +65,11 @@
         function killSession(session_id){
             return $http.get('/api/v1/crustsessions/kill/',{
                 params: {session_id:session_id}});
+        }
+
+        function sendMsg(session_id, message){
+            return $http.get('/api/v1/crustsessions/sendmsg/',{
+                params: {session_id:session_id, message:message}});
         }
 
         function getSessionLogs(session_id, pageSize, page, last_event_id){

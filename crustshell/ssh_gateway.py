@@ -90,21 +90,26 @@ class ChannelMan(threading.Thread):
     def run(self):
         for msg in self.pubsub.listen():
             print msg
-            if msg['type'] != 'message':
+            try:
+                if msg['type'] != 'message':
+                    continue
+
+                if msg['data'].startswith('KILL'):
+                    command, admin = msg['data'].split(':')
+                    close_connection(self.remote_connection, 'Killed by %s'%admin)
+                    self.channel.send('\r\nSession Killed by %s\r\n'%admin)
+                    time.sleep(1)
+                    os.system('sudo kill -9 %s'%self.pid_str)
+
+                elif msg['data'].startswith('MSG'):
+                    data = re.findall('MSG:(.*)', msg['data'])
+                    msg_info = json.loads(data[0])
+                    self.channel.send(
+                        '\r\n\r\n%s: %s\r\n'%(msg_info['sender'],
+                                              msg_info['message']))
+            except Exception as e:
+                print e
                 continue
-
-            if msg['data'].startswith('KILL'):
-                command, admin = msg['data'].split(':')
-                close_connection(self.remote_connection, 'Killed by %s'%admin)
-                self.channel.send('\r\nSession Killed by %s\r\n'%admin)
-                time.sleep(1)
-                os.system('sudo kill -9 %s'%self.pid_str)
-
-            elif msg['data'].startswith('MSG'):
-                data = re.findall('MSG:(.*)', msg['data'])
-                msg_info = json.loads(data[0])
-                self.channel.send(
-                    '\r\n\r\n%s: %s\r\n'%(msg_info['sender'], msg_info['message']))
 
     def stop(self):
         self.pubsub.unsubscribe()

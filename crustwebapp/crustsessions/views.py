@@ -1,5 +1,6 @@
 import os
 import redis
+import simplejson as json
 from datetime import datetime
 from rest_framework import permissions, viewsets
 from rest_framework import views, status
@@ -111,3 +112,25 @@ class CrustKillSessionView(views.APIView):
             session_obj.save()
 
             return Response({'killed':True}, status=status.HTTP_200_OK)
+
+class CrustSessionSendMsgView(views.APIView):
+    def get_permissions(self):
+        return (permissions.IsAuthenticated(), )
+
+    def get(self, request):
+        session_id = request.query_params.get('session_id', None)
+        message = request.query_params.get('message','')
+        if '\n' in message:
+            message = message.replace('\n', '\r\n')
+        session_obj = CrustCLISession.objects.get(id=session_id)
+        if session_obj:
+            msg_info = {
+                'sender':request.user.username,
+                'message': message
+            }
+            redis_conn = redis.Redis()
+            redis_conn.publish(
+                str(session_obj.pid),
+                'MSG:%s'%json.dumps(msg_info))
+
+            return Response({'sent':True}, status=status.HTTP_200_OK)

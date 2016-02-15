@@ -31,6 +31,7 @@ from crustsessions.views import CrustCLISessionViewSet
 from crustsessions.views import CrustSessionEventViewSet
 from crustsessions.views import CrustKillSessionView
 from crustsessions.views import CrustActiveSessionCountView
+from crustsessions.views import CrustSessionSendMsgView
 
 from remote_connections.views import RemoteConnectionViewSet
 from remote_connections.views import RemoteConnectionsFailCountView
@@ -70,6 +71,10 @@ urlpatterns = patterns(
     url(r'^api/v1/crustsessions/kill/$',
         CrustKillSessionView.as_view(),
         name='crustsession-kill'),
+
+    url(r'^api/v1/crustsessions/sendmsg/$',
+        CrustSessionSendMsgView.as_view(),
+        name='crustsession-sendmsg'),
 
     ### Dashboard General Stats
     url(r'^api/v1/remoteconnections/failcount/$',

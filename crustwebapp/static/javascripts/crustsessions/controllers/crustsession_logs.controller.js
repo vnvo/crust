@@ -34,6 +34,17 @@
             $scope.session_play = false;
         });
 
+        vm.sendMsg = function(){
+            CrustSessions.sendMsg($scope.session_id, vm.message).then(
+                function(data, status, headers, config){
+                    Snackbar.show('Message Sent');
+                    vm.message = null;
+                },
+                function(data, status, headers, config){
+                    Snackbar.error('Error on sending message.');
+                }
+            );
+        };
 
         $scope.killSession = function(){
             if(!confirm('You are killing an Active Session, Are you sure?'))

@@ -43,6 +43,7 @@ class RemoteUserACL(models.Model):
         return ''
     @property
     def get_limit_days_repr(self):
+        return ''
         if self.limit_days:
             l = [int(item) for item in self.limit_days.split(',')]
             return ','.join(get_dow_name(item) for item in l)
@@ -87,13 +88,15 @@ class RemoteUserACL(models.Model):
     def get_filtered_server_groups(cls, remote_user):
         now = datetime.now()
         wday = str(now.weekday())
+        print now, wday
         acl_list = cls.objects.filter(
             remote_user=remote_user
         ).filter(is_active=True).filter(
             Q(Q(limit_hours_start__lte=now.hour)&
               Q(limit_hours_end__gt=now.hour))|
             Q(limit_hours_start=-1)
-        ).filter(Q(limit_days__contains=wday)|Q(limit_days=None))
+        ).filter(Q(limit_days__contains=wday)|Q(limit_days='')|Q(limit_days=None))
+        print acl_list
         allow_list = set()
         deny_list = set()
 
@@ -138,7 +141,7 @@ class RemoteUserACL(models.Model):
             Q(Q(limit_hours_start__lte=now.hour)&
               Q(limit_hours_end__gt=now.hour))|
             Q(limit_hours_start=-1)
-        ).filter(Q(limit_days__contains=wday)|Q(limit_days=None)).all()
+        ).filter(Q(limit_days__contains=wday)|Q(limit_days='')|Q(limit_days=None)).all()
         allow_list = set()
         deny_list = set()
 
@@ -191,7 +194,7 @@ class RemoteUserACL(models.Model):
             Q(Q(limit_hours_start__lte=now.hour)&
               Q(limit_hours_end__gt=now.hour))|
             Q(limit_hours_start=-1)
-        ).filter(Q(limit_days__contains=wday)|Q(limit_days=None)).all()
+        ).filter(Q(limit_days__contains=wday)|Q(limit_days='')|Q(limit_days=None)).all()
         allow_list = set()
         deny_list = set()
 
@@ -305,7 +308,7 @@ class RemoteUserACL(models.Model):
             Q(Q(limit_hours_start__lte=now.hour)&
               Q(limit_hours_end__gt=now.hour))|
             Q(limit_hours_start=-1)
-        ).filter(Q(limit_days__contains=wday)|Q(limit_days=None))
+        ).filter(Q(limit_days__contains=wday)|Q(limit_days='')|Q(limit_days=None))
 
         acl_by_account = acl_by_remote_user.filter(server_account=server_account)
         if acl_by_account:

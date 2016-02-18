@@ -1,3 +1,4 @@
 from django.contrib import admin
+from remoteuseracl.models import RemoteUserACL
 
-# Register your models here.
+admin.site.register(RemoteUserACL)

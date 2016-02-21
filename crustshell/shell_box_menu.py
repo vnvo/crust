@@ -11,8 +11,12 @@ from db_utils import get_acls_by_remote_user
 from db_utils import get_server_groups_for_user
 from db_utils import get_servers_by_group
 from db_utils import get_server_accounts_by_server
+from db_utils import close_connection, close_failed_connection, update_connection_state
 import pprint
 import traceback
+from client import send_message, cleanup
+from client import handle_connection
+import time
 
 class FocusableText(urwid.WidgetWrap):
     """Selectable Text and meta data to hold server info"""
@@ -145,10 +149,12 @@ class ShellScreen(Screen):
         return self._term_input_file.width, self._term_input_file.height
 
 class ShellBoxMenu(object):
-    def __init__(self, upstream_chan, user_obj, remote_host, logger):
+    def __init__(self, upstream_chan, sshgw, remote_host, remote_connection, logger):
         self.upstream_chan = upstream_chan
-        self.user_obj = user_obj
+        self.sshgw = sshgw
+        self.user_obj = sshgw.user
         self.remote_host = remote_host
+        self.remote_connection = remote_connection
         self.logger = logger
 
         self.palette = [
@@ -306,10 +312,16 @@ class ShellBoxMenu(object):
                         selected = current_focus[0].get_focus().metadata
                         if selected:
                             if self.current_level == 'server-account':
-                                self.quit = True
                                 self.stop_ui()
                                 self.selected = selected
-                                return
+                                self.sshgw.ignore_resize = False
+                                update_connection_state(self.remote_connection, 'session')
+                                handle_connection(
+                                    self.selected, self.sshgw, self.remote_host,
+                                    self.upstream_chan, self.remote_connection)
+                                self.sshgw.ignore_resize = True
+                                update_connection_state(self.remote_connection, 'select server')
+                                self.start_ui()
 
                             elif self.current_level == 'server-group':
                                 self.current_level = 'server'
@@ -320,7 +332,6 @@ class ShellBoxMenu(object):
                                 self.current_level = 'server-account'
                                 self.selected_server = selected
                                 self._setup_tree()
-
                         else:
                             label = current_focus[0].get_focus().text
                             if label == 'Servers':
@@ -330,8 +341,8 @@ class ShellBoxMenu(object):
                             elif label == 'Server Accounts':
                                 self.current_level = 'server'
                                 self.selected_server = None
-
                             self._setup_tree()
+
                     elif re.match('[a-zA-Z]', k) : #seek and set focus
                         for index, item in enumerate(self.index_map):
                             if item.lower().startswith(k.lower()):
@@ -339,7 +350,6 @@ class ShellBoxMenu(object):
                                 self.treebox.set_focus((0,0,index))
                                 self.view.render(size=self.size)
                                 break
-
         except Exception as e:
             print e
             self.logger.exception('Shell Menu, run:')
